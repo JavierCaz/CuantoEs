@@ -1,0 +1,100 @@
+[
+  {
+    "id": "un-millon",
+    "titulo": "Un millón de pesos",
+    "monto": 1000000,
+    "año": null,
+    "descripcion": "La cifra redonda que todos imaginamos. ¿Cabe en una mochila?",
+    "fuente": null,
+    "fuente_url": null,
+    "referencias": [
+      "persona",
+      "maleta",
+      "silla"
+    ]
+  },
+  {
+    "id": "salario-minimo-anual",
+    "titulo": "Un año de salario mínimo",
+    "monto": 114989.6,
+    "año": 2026,
+    "descripcion": "$315.04 diarios × 365 días, salario mínimo general vigente en 2026.",
+    "fuente": "Bloomberg Línea / CONASAMI",
+    "fuente_url": "https://www.bloomberglinea.com/latinoamerica/mexico/salario-minimo-en-mexico-aumentara-a-mxn31504-diarios-para-2026/",
+    "referencias": [
+      "persona",
+      "mochila",
+      "maletin"
+    ]
+  },
+  {
+    "id": "aifa",
+    "titulo": "Aeropuerto Felipe Ángeles (AIFA)",
+    "monto": 74535000000,
+    "año": 2022,
+    "descripcion": "Presupuesto de construcción reportado por Sedena. Estimaciones independientes que incluyen accesos y obras complementarias superan los 100 mil millones.",
+    "fuente": "Milenio",
+    "fuente_url": "https://www.milenio.com/politica/aifa-construccion-costo-74-mil-mdp-programado",
+    "referencias": [
+      "persona",
+      "auto",
+      "autobus"
+    ]
+  },
+  {
+    "id": "cdmx-2026",
+    "titulo": "Presupuesto de la CDMX 2026",
+    "monto": 313385000000,
+    "año": 2026,
+    "descripcion": "Gasto total aprobado por el Congreso de la Ciudad de México para todo 2026.",
+    "fuente": "Expansión Política",
+    "fuente_url": "https://politica.expansion.mx/cdmx/2025/12/15/tras-rina-entre-diputados-morena-y-aliados-aprueban-paquete-economico-2026-para-cdmx",
+    "referencias": [
+      "persona",
+      "vagon",
+      "basquetbol"
+    ]
+  },
+  {
+    "id": "refineria-olmeca",
+    "titulo": "Refinería Olmeca (Dos Bocas)",
+    "monto": 330000000000,
+    "año": 2024,
+    "descripcion": "Costo oficial anunciado por el gobierno federal (unos 16,800 millones de dólares). Analistas independientes estiman que fue mayor.",
+    "fuente": "El Universal",
+    "fuente_url": "https://www.eluniversal.com.mx/nacion/amlo-refineria-olmeca-de-dos-bocas-tuvo-un-costo-de-330-mil-millones-de-pesos/",
+    "referencias": [
+      "persona",
+      "trailer",
+      "avion"
+    ]
+  },
+  {
+    "id": "tren-maya",
+    "titulo": "Tren Maya",
+    "monto": 500000000000,
+    "año": 2025,
+    "descripcion": "Estimación de análisis independientes (IMCO) del costo acumulado. La cifra oficial de 2021 era de 179 mil millones.",
+    "fuente": "Vanguardia",
+    "fuente_url": "https://vanguardia.com.mx/noticias/tren-maya-miles-de-millones-invertidos-y-numeros-rojos-al-cumplir-dos-anos-HP18604276",
+    "referencias": [
+      "persona",
+      "porteria",
+      "alberca"
+    ]
+  },
+  {
+    "id": "pef-2026",
+    "titulo": "Presupuesto federal 2026 (PEF)",
+    "monto": 10193683700000,
+    "año": 2026,
+    "descripcion": "Gasto neto total del gobierno federal aprobado por la Cámara de Diputados para 2026.",
+    "fuente": "N+",
+    "fuente_url": "https://www.nmas.com.mx/politica/pleno-de-la-camara-de-diputados-aprueba-presupuesto-2026",
+    "referencias": [
+      "persona",
+      "casa",
+      "futbol"
+    ]
+  }
+]

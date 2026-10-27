@@ -1,0 +1,414 @@
+:root {
+  --bg: #1b1d22;
+  --fg: #f4f1ea;
+  --muted: #b9b4a8;
+  --accent: #4a7fc1;
+  --accent-strong: #2f63a8;
+  --panel-bg: rgb(22 24 29 / 0.86);
+  --border: rgb(255 255 255 / 0.12);
+  --error: #ff8a7a;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  overscroll-behavior: none;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 0.35em;
+  margin: 0 0.1em;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Welcome overlay ---------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+  background: rgb(0 0 0 / 0.6);
+  z-index: 10;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 9vw, 4.5rem);
+}
+
+.overlay p {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.overlay .pitch {
+  color: var(--fg);
+  font-size: 1.15rem;
+}
+
+.enter {
+  margin-top: 12px;
+  padding: 12px 36px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.enter:hover {
+  background: var(--accent-strong);
+}
+
+.touch-only {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .touch-only {
+    display: block;
+  }
+  .desktop-only {
+    display: none;
+  }
+}
+
+/* ---------- Side panel ---------- */
+
+.panel {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.2s;
+}
+
+body.locked .panel {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.panel summary {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel summary::after {
+  content: "Mostrar detalles ▾";
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.panel details[open] summary::after {
+  content: "Ocultar ▴";
+}
+
+.brand {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hud-amount {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.hud-words {
+  font-size: 1.1rem;
+  color: #9cc1f0;
+  font-weight: 600;
+}
+
+.hud-alt {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.panel section,
+.amount-form {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.panel h2,
+.panel h3 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.amount-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.amount-row {
+  display: flex;
+  gap: 8px;
+}
+
+.amount-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  color: var(--fg);
+  font: inherit;
+}
+
+.amount-row input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.amount-row button {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+.amount-preview {
+  min-height: 1.3em;
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.amount-preview.error {
+  color: var(--error);
+}
+
+.presets {
+  display: grid;
+  gap: 4px;
+}
+
+.preset {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.04);
+  color: var(--fg);
+  text-align: left;
+}
+
+.preset:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.preset.active {
+  border-color: var(--accent);
+  background: rgb(74 127 193 / 0.2);
+}
+
+.preset-room {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.preset-amount {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.hud-details p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.hud-details a {
+  color: #9cc1f0;
+}
+
+.hud-details dl {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.hud-details dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.hud-details dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.hud-details ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* ---------- Misc ---------- */
+
+/* Walking through a door: the screen fills with the mist's color while the next room is built. */
+.fade {
+  position: absolute;
+  inset: 0;
+  background: #d9d4c7;
+  opacity: 0;
+  transition: opacity 0.16s;
+  pointer-events: none;
+}
+
+.fade.on {
+  opacity: 1;
+}
+
+.hint {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  translate: -50% 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.debug {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.5);
+  font: 12px/1.4 ui-monospace, monospace;
+  white-space: pre;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .debug {
+    display: none;
+  }
+}
+
+.joystick {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  background: rgb(255 255 255 / 0.08);
+  pointer-events: none;
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.5);
+}
+
+.fab {
+  position: absolute;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--fg);
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+
+.fab:hover {
+  background: rgb(40 44 52 / 0.9);
+}
+
+body.locked .fab {
+  pointer-events: none;
+}

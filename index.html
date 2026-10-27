@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Recorre en 3D cuánto ocupan, en billetes de $500, las cifras que escuchas en las noticias." />
+    <title>¿Cuánto es?</title>
+  </head>
+  <body>
+    <div id="app">
+      <aside class="panel">
+        <details id="panel-details" open>
+          <summary>
+            <span class="brand">¿Cuánto es?</span>
+            <span id="hud-amount" class="hud-amount"></span>
+            <span id="hud-words" class="hud-words"></span>
+            <span id="hud-alt" class="hud-alt"></span>
+          </summary>
+
+          <form id="amount-form" class="amount-form" autocomplete="off">
+            <label for="amount-input">Escribe un monto en pesos para verlo en la sala temporal</label>
+            <div class="amount-row">
+              <input id="amount-input" type="text" inputmode="text" placeholder="Ej. 2.5 mil millones" />
+              <button type="submit">Ver</button>
+            </div>
+            <p id="amount-preview" class="amount-preview" aria-live="polite"></p>
+          </form>
+
+          <section>
+            <h2>Salas del museo</h2>
+            <div id="presets" class="presets"></div>
+          </section>
+
+          <section id="hud-details" class="hud-details"></section>
+        </details>
+      </aside>
+
+      <button id="aerial" class="fab" type="button" title="Tecla V">Vista aérea</button>
+
+      <div id="hint" class="hint" hidden>Haz clic en la escena para caminar · <kbd>Esc</kbd> suelta el mouse</div>
+
+      <div id="overlay" class="overlay">
+        <h1>¿Cuánto es?</h1>
+        <p class="pitch">Recorre en 3D cuánto ocupan, en billetes de $500, las cifras que escuchas en las noticias.</p>
+        <p class="desktop-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> para moverte · ratón para mirar · <kbd>Shift</kbd> para correr · <kbd>V</kbd> vista aérea</p>
+        <p class="touch-only">Joystick a la izquierda · arrastra a la derecha para mirar</p>
+        <button id="enter" class="enter" type="button">Entrar</button>
+      </div>
+
+      <div id="fade" class="fade"></div>
+
+      <div id="debug" class="debug" hidden></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
