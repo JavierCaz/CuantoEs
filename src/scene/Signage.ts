@@ -2,14 +2,15 @@ import * as THREE from 'three';
 import type { Rect } from '../money/layout';
 import { DOOR_HEIGHT, WALL_THICKNESS, type Door, type Point, type RoomPlan } from '../museum/rooms';
 import { disposeObject } from './dispose';
+import { ARENA, ARENA_MUTED, CARBON, DORADO, VERDE } from './palette';
 
 // Museum wayfinding: the room's title over the walkway, a sign over each door, a pointing sign at each
 // corner of the route to the next room, and arrows painted on the floor along it.
 
-const PLATE = '#14161b';
-const TEXT = '#f4f1ea';
-const MUTED = '#b9b4a8';
-const ACCENT = '#f2c14e';
+const PLATE = VERDE;
+const TEXT = ARENA;
+const MUTED = ARENA_MUTED;
+const ACCENT = DORADO;
 const PX_PER_METER = 300;
 const ARROW_SPACING = 3; // meters between floor arrows
 const SIGN_BOTTOM = 1.3; // signs on poles start below eye level, so you read them straight on
@@ -44,12 +45,13 @@ export class Signage {
     const { path, spawn } = plan;
 
     // The title hangs over the walkway just ahead of where you start, above everything on display.
-    const arrow = path.length > 1 ? (path[1].x > spawn.x ? ' →' : ' ←') : '';
+    const ahead = path.length > 1 ? path[1].x - spawn.x : null;
+    const arrow = ahead === null ? '' : ahead > 0.5 ? ' →' : ahead < -0.5 ? ' ←' : ' ↑';
     this.gate({ x: spawn.x, z: spawn.z - 3.5 }, 3.6, [
       { text: texts.kicker.toUpperCase(), size: 0.13, color: MUTED, bold: true },
       { text: texts.title, size: 0.22, bold: true },
-      { text: texts.amount, size: 0.18, color: '#9cc1f0' },
-      { text: texts.hint + arrow, size: 0.14, color: ACCENT, bold: true },
+      { text: texts.amount, size: 0.18, color: ACCENT },
+      { text: texts.hint + arrow, size: 0.14, bold: true },
     ]);
 
     if (plan.exit && texts.exit) this.overDoor(plan.exit, texts.exit);
@@ -79,7 +81,7 @@ export class Signage {
     const { object, height } = plate(lines, width);
     object.position.y = SIGN_BOTTOM + height / 2;
     const top = SIGN_BOTTOM + height * 0.5;
-    const pole = new THREE.Mesh(new THREE.BoxGeometry(0.08, top, 0.08), new THREE.MeshStandardMaterial({ color: 0x30343a }));
+    const pole = new THREE.Mesh(new THREE.BoxGeometry(0.08, top, 0.08), new THREE.MeshStandardMaterial({ color: CARBON }));
     pole.position.set(0, top / 2, -0.06);
 
     const post = new THREE.Group();
@@ -101,7 +103,7 @@ export class Signage {
     object.position.set(at.x, GATE_CLEARANCE + height / 2, at.z);
     this.group.add(object);
     const top = GATE_CLEARANCE + height;
-    const material = new THREE.MeshStandardMaterial({ color: 0x30343a });
+    const material = new THREE.MeshStandardMaterial({ color: CARBON });
     for (const side of [-1, 1]) {
       const x = at.x + side * (width / 2 + 0.05);
       const pole = new THREE.Mesh(new THREE.BoxGeometry(0.1, top, 0.1), material);

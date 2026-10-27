@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Rect } from '../money/layout';
+import { ARENA } from './palette';
 
 type UpdateFn = (dt: number) => void;
 
@@ -16,8 +17,8 @@ export class World {
   private lastTime = 0;
 
   constructor(container: HTMLElement, options: { lowPower: boolean }) {
-    this.scene.background = new THREE.Color(0xd9d4c7);
-    this.scene.fog = new THREE.Fog(0xd9d4c7, 30, 120);
+    this.scene.background = new THREE.Color(ARENA);
+    this.scene.fog = new THREE.Fog(ARENA, 30, 120);
 
     // fov 70°, near 0.05 m, far 3 km. 1 unit = 1 meter.
     this.camera = new THREE.PerspectiveCamera(70, 1, 0.05, 3000);

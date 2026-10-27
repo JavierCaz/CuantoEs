@@ -3,6 +3,7 @@ import type { Rect } from '../money/layout';
 import { DOOR_HEIGHT, DOOR_WIDTH, VESTIBULE, WALL_THICKNESS, type Door, type RoomPlan, type Wall } from '../museum/rooms';
 import { disposeObject } from './dispose';
 import { DoorMist } from './DoorMist';
+import { ARENA, CARBON, TERRACOTA } from './palette';
 
 const COLUMN_SPACING = 10;
 
@@ -41,7 +42,7 @@ export class Warehouse {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(width, depth),
-      new THREE.MeshStandardMaterial({ color: 0x9c968a, roughness: 0.9 }),
+      new THREE.MeshStandardMaterial({ color: CARBON, roughness: 0.9 }),
     );
     // PlaneGeometry is vertical (XY) by default; lay it flat on the ground (XZ).
     floor.rotation.x = -Math.PI / 2;
@@ -55,7 +56,7 @@ export class Warehouse {
 
     // Each wall is a run of boxes along its center line, broken at its doors,
     // with a lintel over each opening.
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xe8e3d8, roughness: 1 });
+    const wallMaterial = new THREE.MeshStandardMaterial({ color: ARENA, roughness: 1 });
     const T = WALL_THICKNESS;
     const piece = (wall: Wall, a: number, b: number, bottom: number, top: number) => {
       if (b - a < 0.01) return;
@@ -92,7 +93,7 @@ export class Warehouse {
     // The passage behind each door: a box seen from the inside (BackSide), so its walls, floor
     // and ceiling show while the face toward the room stays invisible. It keeps you from
     // seeing past the mist's edges into the void where the next room would be.
-    const passageMaterial = new THREE.MeshBasicMaterial({ color: 0x2b2723, side: THREE.BackSide });
+    const passageMaterial = new THREE.MeshBasicMaterial({ color: CARBON, side: THREE.BackSide });
     for (const door of doors) {
       const passage = new THREE.Mesh(new THREE.BoxGeometry(DOOR_WIDTH + 0.04, DOOR_HEIGHT + 0.02, VESTIBULE), passageMaterial);
       passage.rotation.y = Math.atan2(door.nx, door.nz); // box depth (Z) along the door's normal
@@ -101,7 +102,7 @@ export class Warehouse {
     }
 
     const columnGeometry = new THREE.BoxGeometry(0.5, wallHeight, 0.5);
-    const columnMaterial = new THREE.MeshStandardMaterial({ color: 0xc94c2e });
+    const columnMaterial = new THREE.MeshStandardMaterial({ color: TERRACOTA });
     const clearOfDoors = (x: number, wall: Wall) =>
       doors.every((d) => d.wall !== wall || Math.abs(d.x - x) > DOOR_WIDTH / 2 + 0.5);
     for (let x = area.minX + COLUMN_SPACING; x < area.maxX; x += COLUMN_SPACING) {
@@ -124,5 +125,5 @@ function floorGrid({ minX, maxX, minZ, maxZ }: Rect): THREE.LineSegments {
   const geometry = new THREE.BufferGeometry();
   // A flat array of xyz numbers, read 3 at a time; each pair of points is one line segment.
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: 0x857f74 }));
+  return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: 0x3d4140 }));
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Collider } from '../src/controls/collision';
 import { DEFAULT_BILL } from '../src/money/denominations';
 import { computeLayout, type Rect } from '../src/money/layout';
-import { footprintRect, type Point } from '../src/museum/referenceLayout';
+import { WALKWAY, footprintRect, type Point } from '../src/museum/referenceLayout';
 import {
   DOOR_WIDTH,
   ROOMS,
@@ -24,16 +24,16 @@ const RADIUS = 0.3; // same as the player
 // The same plan main.ts builds for each museum room, plus everything solid in it.
 function museumRoom(index: number, exit: ExitSide | null = exitSide(index)) {
   const preset = ROOMS[index];
-  const layout = computeLayout(preset.monto, DEFAULT_BILL);
   const footprints = (preset.referencias as ReferenceId[]).map((id) => REFERENCES[id].footprint);
+  const layout = computeLayout(preset.monto, DEFAULT_BILL, footprints);
   const plan = planRoom(layout, footprints, { entry: index > 0, exit });
-  const solids: Rect[] = [
+  const money: Rect[] = [
     ...layout.placements.tarima.map((p) => footprintRect(p, layout.sizes.tarima)),
     ...layout.placements.bloque.map((p) => footprintRect(p, layout.sizes.bloque)),
     ...(layout.table ? [layout.table] : []),
-    ...plan.references.map((p, i) => footprintRect(p, footprints[i])),
   ];
-  return { plan, solids };
+  const references = plan.references.map((p, i) => footprintRect(p, footprints[i]));
+  return { plan, money, references, solids: [...money, ...references] };
 }
 
 const overlaps = (a: Rect, b: Rect) => a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
@@ -88,6 +88,22 @@ describe('room plans', () => {
     for (let i = 1; i < plan.path.length; i++) {
       const strip = sweep(plan.path[i - 1], plan.path[i], 1); // a meter of clearance on each side
       for (const solid of solids) expect(overlaps(strip, solid)).toBe(false);
+    }
+  });
+
+  it.each(ROOMS.map((r, i) => [r.id, i] as const))('%s: the route goes straight through the exhibit', (_, index) => {
+    const { plan } = museumRoom(index, 'derecha');
+    const [spawn, end] = plan.path;
+    expect(end.x).toBe(spawn.x);
+    expect(end.z).toBeLessThan(plan.content.minZ); // all the way past the back of the exhibit
+    expect(museumRoom(index, 'fondo').plan.path).toHaveLength(2); // a back exit is straight ahead
+  });
+
+  it.each(ROOMS.map((r, i) => [r.id, i] as const))('%s: the money flows around the references, not over them', (_, index) => {
+    const { money, references } = museumRoom(index);
+    for (const m of money) {
+      expect(m.minX >= WALKWAY / 2 - 1e-9 || m.maxX <= -WALKWAY / 2 + 1e-9).toBe(true);
+      for (const r of references) expect(overlaps(m, r)).toBe(false);
     }
   });
 

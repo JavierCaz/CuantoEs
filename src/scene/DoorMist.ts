@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { DOOR_HEIGHT, DOOR_WIDTH, type Door } from '../museum/rooms';
+import { ARENA } from './palette';
 
-export const MIST_COLOR = 0xd9d4c7; // the same as the fog, so the doorway seems to fade into it
+export const MIST_COLOR = ARENA; // the same as the fog, so the doorway seems to fade into it
 
 // Layers of drifting fog across each doorway. The next room doesn't exist until you walk
 // through, so the mist has to hide it: the front layers are thin wisps, the last one is solid.

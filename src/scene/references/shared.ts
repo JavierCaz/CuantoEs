@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Rect } from '../../money/layout';
 import type { Footprint } from '../../museum/referenceLayout';
+import { ARENA, VERDE } from '../palette';
 
 // Familiar objects at real scale, built from primitives. Each one is centered on its local
 // origin and fits inside its footprint, so the room planner can place it without building it.
@@ -88,11 +89,11 @@ export function makeLabel(text: string, heightMeters = 0.35): THREE.Sprite {
   canvas.width = Math.ceil(ctx.measureText(text).width) + 48;
   canvas.height = 72;
   ctx.font = font; // resizing a canvas resets its state
-  ctx.fillStyle = 'rgb(20 22 27 / 0.85)';
+  ctx.fillStyle = VERDE;
   ctx.beginPath();
   ctx.roundRect(0, 0, canvas.width, canvas.height, 36);
   ctx.fill();
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = ARENA;
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 24, canvas.height / 2 + 2);
 

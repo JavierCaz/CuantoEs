@@ -16,6 +16,7 @@ import { formatNumber, parseAmount, shortAmount } from './i18n/format';
 import { MAX_AMOUNT, mountAmountInput } from './ui/AmountInput';
 import { mountPresetPanel } from './ui/PresetPanel';
 import { renderHud } from './ui/Hud';
+import { Soundtrack } from './audio/Soundtrack';
 import {
   ROOMS,
   crossedDoor,
@@ -41,6 +42,7 @@ const debug = $('debug');
 const fade = $('fade');
 const panelDetails = $<HTMLDetailsElement>('panel-details');
 const aerialButton = $<HTMLButtonElement>('aerial');
+const musicButton = $<HTMLButtonElement>('music');
 const isTouch = window.matchMedia('(pointer: coarse)').matches;
 
 // ---------- 3D scene ----------
@@ -49,6 +51,7 @@ const world = new World(app, { lowPower: isTouch });
 const money = new MoneyRenderer(DEFAULT_BILL, world.maxAnisotropy);
 world.scene.add(money.group);
 const aerial = new AerialView(world.camera);
+const music = new Soundtrack();
 
 // A museum room by its place in the tour, or the Sala temporal for an amount someone typed.
 type Room = { index: number } | { temporal: number };
@@ -66,13 +69,14 @@ const player = new Player({ minX: 0, maxX: 0, minZ: 0, maxZ: 0 });
 // Only the room you're in exists: building one disposes the last.
 function buildScene(room: Room) {
   const preset = 'index' in room ? ROOMS[room.index] : undefined;
-  layout = computeLayout(preset?.monto ?? (room as { temporal: number }).temporal, DEFAULT_BILL);
+  const ids = (preset?.referencias as ReferenceId[] | undefined) ?? TEMPORAL_REFERENCES;
+  const footprints = ids.map((id) => REFERENCES[id].footprint);
+  layout = computeLayout(preset?.monto ?? (room as { temporal: number }).temporal, DEFAULT_BILL, footprints);
   money.show(layout);
 
-  const ids = (preset?.referencias as ReferenceId[] | undefined) ?? TEMPORAL_REFERENCES;
   plan = planRoom(
     layout,
-    ids.map((id) => REFERENCES[id].footprint),
+    footprints,
     'index' in room ? { entry: room.index > 0, exit: exitSide(room.index) } : { entry: true, exit: null },
   );
 
@@ -144,6 +148,7 @@ function enterRoom(room: Room, arrival: Arrival = 'start') {
 
   const preset = 'index' in room ? ROOMS[room.index] : undefined;
   const amount = preset?.monto ?? (room as { temporal: number }).temporal;
+  music.setAmount(amount);
   renderHud(
     { amount: $('hud-amount'), words: $('hud-words'), alt: $('hud-alt'), details: $('hud-details') },
     layout,
@@ -203,9 +208,21 @@ function toggleAerial() {
   aerialButton.textContent = aerial.mode === 'toAerial' ? 'Volver a caminar' : 'Vista aérea';
 }
 aerialButton.addEventListener('click', toggleAerial);
+
+function toggleMusic() {
+  music.toggleMuted();
+  musicButton.setAttribute('aria-pressed', String(!music.muted));
+}
+musicButton.setAttribute('aria-pressed', String(!music.muted));
+musicButton.addEventListener('click', toggleMusic);
+
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyV' && !(e.target instanceof HTMLInputElement)) toggleAerial();
+  if (e.target instanceof HTMLInputElement) return;
+  if (e.code === 'KeyV') toggleAerial();
+  if (e.code === 'KeyM') toggleMusic();
 });
+// The music starts with the tour: browsers only allow audio after a click or a key.
+$('enter').addEventListener('click', () => music.play());
 
 if (isTouch) {
   panelDetails.open = false; // on phones the panel starts collapsed to its summary

@@ -1,12 +1,13 @@
 import { union, type Rect } from '../money/layout';
 import { PRESETS, type Preset } from '../ui/PresetPanel';
-import { footprintRect, placeReferences, type Footprint, type Point } from './referenceLayout';
+import { footprintRect, type Footprint, type Point } from './referenceLayout';
 
 export type { Point } from './referenceLayout';
 
 // The museum: one preset per room, from the smallest amount to the biggest, joined by doors.
 // Only the room you're in exists in the scene, so each room is planned in its own local
-// coordinates (the money's front edge at z = 0, the entrance toward +Z), never on a shared map.
+// coordinates (the exhibit's front edge at z = 0, its walkway along x = 0, the entrance toward +Z),
+// never on a shared map.
 
 export const ROOMS: Preset[] = [...PRESETS].sort((a, b) => a.monto - b.monto);
 
@@ -37,14 +38,14 @@ export function exitSide(index: number): ExitSide | null {
 
 export const WALL_THICKNESS = 0.4;
 const MIN_WALL_HEIGHT = 8;
-const SIDE_MARGIN = 6; // also the corridor along the side walls that leads to the exit
-const BACK_MARGIN = 6;
-const MIN_FRONT_MARGIN = 10; // room to stand and look before walking in
-const MIN_SIZE = 20;
+const SIDE_MARGIN = 2; // just enough that the exhibit doesn't touch the walls
+const BACK_MARGIN = 5; // the strip behind the exhibit that leads to a side exit
+const FRONT_MARGIN = 9; // room to stand and look before walking in
+const MIN_SIZE = 12;
 
 export const DOOR_WIDTH = 2.4;
 export const DOOR_HEIGHT = 3;
-const DOOR_INSET = 3; // from the nearest corner: the middle of the clear margin along the walls
+const DOOR_INSET = BACK_MARGIN / 2; // a side exit opens onto the middle of the strip behind the exhibit
 export const VESTIBULE = 3; // dark passage behind each door, where the mist hangs
 const CROSS_DEPTH = 1; // how far past the wall line counts as having gone through
 const ARRIVE_DEPTH = 1.2; // how far inside the next room you appear: past CROSS_DEPTH, so you can't bounce straight back
@@ -71,24 +72,24 @@ export interface RoomPlan {
   path: Point[]; // walking route on the floor, from the spawn point to the exit door
 }
 
+// The room hugs the exhibit (see computeLayout): the walkway through it is the route, so there's
+// no corridor along the walls, just a strip at the back to reach a side exit.
 export function planRoom(
-  money: { bounds: Rect; height: number },
+  money: { bounds: Rect; height: number; references: Point[] },
   footprints: Footprint[],
   doors: { entry: boolean; exit: ExitSide | null },
 ): RoomPlan {
-  const references = placeReferences(footprints);
+  const { references } = money;
   const content = references.reduce((r, p, i) => union(r, footprintRect(p, footprints[i])), money.bounds);
   const height = Math.max(money.height, ...footprints.map((f) => f.h));
 
-  // Tall content needs more distance to fit in view when you walk in.
-  const frontMargin = Math.max(MIN_FRONT_MARGIN, height * 3);
   const width = Math.max(MIN_SIZE, content.maxX - content.minX + SIDE_MARGIN * 2);
-  const depth = Math.max(MIN_SIZE, content.maxZ - content.minZ + frontMargin + BACK_MARGIN);
+  const depth = Math.max(MIN_SIZE, content.maxZ - content.minZ + FRONT_MARGIN + BACK_MARGIN);
   const centerX = (content.minX + content.maxX) / 2;
-  const frontZ = content.maxZ + frontMargin;
+  const frontZ = content.maxZ + FRONT_MARGIN;
   const area = { minX: centerX - width / 2, maxX: centerX + width / 2, minZ: frontZ - depth, maxZ: frontZ };
 
-  const spawn = { x: 0, z: frontZ - frontMargin / 2 };
+  const spawn = { x: 0, z: frontZ - FRONT_MARGIN / 2 };
   const entry = doors.entry ? door('frente', 0, area.maxZ) : null;
   const exit = doors.exit ? exitDoor(doors.exit, area) : null;
 
@@ -101,7 +102,7 @@ export function planRoom(
     references,
     entry,
     exit,
-    path: exit ? guidePath(spawn, exit, area) : [],
+    path: exit ? guidePath(spawn, exit) : [],
   };
 }
 
@@ -116,21 +117,20 @@ function door(wall: Wall, x: number, z: number): Door {
   return { wall, x, z, nx: NORMALS[wall].x, nz: NORMALS[wall].z };
 }
 
-// A back-wall exit sits in the right-hand corridor; a side-wall exit sits just past the money,
-// in the clear strip along the back wall, so you walk the whole exhibit before turning.
+// A back-wall exit sits at the end of the walkway, straight ahead of the entrance; a side-wall exit
+// sits in the strip behind the exhibit, so you walk the whole exhibit before turning.
 function exitDoor(side: ExitSide, area: Rect): Door {
-  if (side === 'fondo') return door('fondo', area.maxX - DOOR_INSET, area.minZ);
+  if (side === 'fondo') return door('fondo', 0, area.minZ);
   return door(side, side === 'derecha' ? area.maxX : area.minX, area.minZ + DOOR_INSET);
 }
 
-// Step sideways to the corridor along the side wall, follow it to the back, then into the door.
-// The corridor is outside the content's bounds by construction (SIDE_MARGIN, BACK_MARGIN, and
-// the front margin around the spawn point), so the route never crosses money or references.
-function guidePath(spawn: Point, exit: Door, area: Rect): Point[] {
-  const corridorX = exit.wall === 'izquierda' ? area.minX + DOOR_INSET : area.maxX - DOOR_INSET;
-  const corner = { x: corridorX, z: spawn.z };
-  if (exit.wall === 'fondo') return [spawn, corner, { x: exit.x, z: exit.z }];
-  return [spawn, corner, { x: corridorX, z: exit.z }, { x: exit.x, z: exit.z }];
+// Straight down the walkway through the exhibit, then, for a side exit, along the strip behind it.
+// Both are clear by construction (WALKWAY in computeLayout, BACK_MARGIN here), so the route never
+// crosses money or references.
+function guidePath(spawn: Point, exit: Door): Point[] {
+  const door = { x: exit.x, z: exit.z };
+  if (exit.wall === 'fondo') return [spawn, door];
+  return [spawn, { x: spawn.x, z: exit.z }, door];
 }
 
 // ---------- Walking through doors ----------

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BILL } from '../src/money/denominations';
 import { BILLS_PER, UNIT_KINDS, computeLayout, unitSizes, type Layout } from '../src/money/layout';
+import { WALKWAY, footprintRect } from '../src/museum/referenceLayout';
 
 const totalBills = (layout: Layout) =>
   UNIT_KINDS.reduce((sum, kind) => sum + layout.placements[kind].length * BILLS_PER[kind], 0);
@@ -51,6 +52,26 @@ describe('computeLayout', () => {
       const key = `${Math.round(p.x / sizes.tarima.w)},${Math.round(p.y * 100)},${Math.round(p.z / sizes.tarima.d)}`;
       expect(seen.has(key)).toBe(false);
       seen.add(key);
+    }
+  });
+
+  it('leaves the walkway clear and flows around the references, bloques too', () => {
+    const references = [
+      { w: 0.5, d: 0.5, h: 1.7 },
+      { w: 30, d: 20, h: 3 },
+      { w: 110, d: 75, h: 2.5 },
+    ];
+    const layout = computeLayout(50_250_000_000_000, DEFAULT_BILL, references); // 50 bloques and 500 tarimas
+    const standing = layout.references.map((p, i) => footprintRect(p, references[i]));
+    for (const kind of ['tarima', 'bloque'] as const) {
+      expect(layout.placements[kind].length).toBeGreaterThan(0);
+      for (const p of layout.placements[kind]) {
+        const r = footprintRect(p, layout.sizes[kind]);
+        expect(r.minX >= WALKWAY / 2 - 1e-9 || r.maxX <= -WALKWAY / 2 + 1e-9).toBe(true);
+        for (const s of standing) {
+          expect(r.minX < s.maxX && r.maxX > s.minX && r.minZ < s.maxZ && r.maxZ > s.minZ).toBe(false);
+        }
+      }
     }
   });
 

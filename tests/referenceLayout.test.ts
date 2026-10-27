@@ -9,11 +9,11 @@ const sets: [string, ReferenceId[]][] = [
 ];
 
 describe('placeReferences', () => {
-  it.each(sets)('%s: references stand apart, beside the walkway, in front of the money', (_, ids) => {
+  it.each(sets)('%s: references stand apart, beside the walkway, in the front row', (_, ids) => {
     const footprints = ids.map((id) => REFERENCES[id].footprint);
     const rects = placeReferences(footprints).map((p, i) => footprintRect(p, footprints[i]));
     rects.forEach((r, i) => {
-      expect(r.minZ).toBeGreaterThan(0); // the money's front edge is at z = 0
+      expect(r.maxZ).toBeCloseTo(0); // the exhibit's front edge is at z = 0
       expect(r.minX >= WALKWAY / 2 || r.maxX <= -WALKWAY / 2).toBe(true);
       for (const other of rects.slice(i + 1)) {
         const overlap = r.minX < other.maxX && r.maxX > other.minX && r.minZ < other.maxZ && r.maxZ > other.minZ;
@@ -29,6 +29,18 @@ describe('placeReferences', () => {
     ]);
     expect(a.x).toBeGreaterThan(0);
     expect(b.x).toBeLessThan(0);
+  });
+
+  it('starts a row past whatever is already on that side', () => {
+    const [a, b] = placeReferences(
+      [
+        { w: 1, d: 1, h: 1 },
+        { w: 1, d: 1, h: 1 },
+      ],
+      [WALKWAY / 2, 6],
+    );
+    expect(a.x - 0.5).toBe(WALKWAY / 2); // nothing on the right yet: right against the walkway
+    expect(b.x + 0.5).toBeLessThan(-6); // the table is on the left: a step past it
   });
 
   it('gives each room its own references, apart from the person who stands in every one', () => {

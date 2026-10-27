@@ -19,6 +19,7 @@ The interface is in Spanish (es-MX).
 - **Custom amounts** — type any amount (e.g. `2.5 mil millones`) up to 10¹⁵ pesos and see it in a temporary room.
 - **Scale references** — people, furniture, vehicles, sports fields and buildings placed beside the money.
 - **First-person or aerial view** — walk with the keyboard/mouse or touch controls, or press <kbd>V</kbd> for an overhead view.
+- **Layered soundtrack** — generative background music (Web Audio, no audio files) that shifts with the amount: warm piano and nylon guitar for everyday figures (*familiaridad*), a light electronic pulse around a million (*curiosidad*), wide sustained chords for the big public works (*asombro*), and sparse bells for the federal budget (*reflexión*). Moods crossfade as you walk between rooms; see [`src/audio/moods.ts`](src/audio/moods.ts).
 - **Desktop and mobile** — pointer-lock controls on desktop, virtual joystick on touch screens.
 
 ## Controls
@@ -29,6 +30,7 @@ The interface is in Spanish (es-MX).
 | Look | Mouse | Drag on the right side |
 | Run | <kbd>Shift</kbd> | — |
 | Aerial view | <kbd>V</kbd> | "Vista aérea" button |
+| Music on/off | <kbd>M</kbd> | "Música" button |
 | Release mouse | <kbd>Esc</kbd> | — |
 
 ## Getting started
@@ -57,6 +59,7 @@ Then open the URL Vite prints (usually http://localhost:5173).
 ```
 src/
 ├── main.ts          # App entry: wires scene, controls, rooms and UI
+├── audio/           # Generative soundtrack and its moods
 ├── controls/        # Player movement, desktop/touch input, collision
 ├── data/
 │   └── presets.json # Museum rooms: amounts, descriptions and sources

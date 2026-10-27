@@ -47,12 +47,15 @@ export function renderHud(el: HudElements, layout: Layout, requested: number, pr
   });
   parts.push(`<h3>${formatNumber(layout.bills)} billetes de $500</h3><ul>${units.join('')}</ul>`);
 
+  // A table's outline says it all; pallets flow around the references, so give the floor they cover instead.
   const { minX, maxX, minZ, maxZ } = layout.bounds;
-  const w = maxX - minX;
-  const d = maxZ - minZ;
-  const fields = (w * d) / SOCCER_FIELD_M2;
+  const size =
+    layout.counts.tarima + layout.counts.bloque > 0
+      ? `${formatNumber(layout.floor)} m²`
+      : `${meters(maxX - minX)} × ${meters(maxZ - minZ)}`;
+  const fields = layout.floor / SOCCER_FIELD_M2;
   const fieldsText = fields >= 0.25 ? ` · ${formatNumber(fields, 1)} canchas de fútbol` : '';
-  parts.push(`<p>Ocupa ${meters(w)} × ${meters(d)}${fieldsText}</p>`);
+  parts.push(`<p>Ocupa ${size}${fieldsText}</p>`);
 
   const comparisons = compare(layout.amount, layout.bills)
     .map((c) => `<dt>${c.label}</dt><dd>${c.value}</dd>`)

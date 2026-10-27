@@ -14,29 +14,29 @@ export interface Footprint {
   h: number;
 }
 
-export const WALKWAY = 4; // clear aisle down the middle, from the spawn point to the money
-const FRONT_GAP = 1.5; // between the money's front edge (z = 0) and the references
+export const WALKWAY = 3; // clear aisle down the middle of the room, from the entrance through the exhibit
 
-// References stand in front of the money (z > 0) in one row on each side of the walkway:
+// References stand in the front row of the exhibit, one row on each side of the walkway:
 // the first on the right, the next on the left, and so on, each one further out than the last.
 // Presets list them smallest first, so the familiar small things end up nearest the path.
-// Back edges line up, so every reference sits as close to the money as possible.
-export function placeReferences(items: Footprint[]): Point[] {
-  const reach = [WALKWAY / 2, WALKWAY / 2]; // how far out each side's row already goes: [right, left]
+// Front edges line up on z = 0, where the exhibit starts; the money fills in around and behind them.
+// `start` is how far out each side's row already goes, [right, left]: the table may be there first.
+export function placeReferences(items: Footprint[], start: [number, number] = [WALKWAY / 2, WALKWAY / 2]): Point[] {
+  const reach = [...start];
   return items.map((f, i) => {
     const side = i % 2;
-    const gap = i < 2 ? 0 : spacing(f);
+    const gap = reach[side] > WALKWAY / 2 ? spacing(f) : 0;
     const x = reach[side] + gap + f.w / 2;
     reach[side] = x + f.w / 2;
-    return { x: side === 0 ? x : -x, z: FRONT_GAP + f.d / 2 };
+    return { x: side === 0 ? x : -x, z: -f.d / 2 };
   });
 }
 
 // Room to walk around an object, growing with its size: half a meter beside a backpack, more beside a plane.
-function spacing(f: Footprint): number {
+export function spacing(f: Footprint): number {
   return Math.min(3, Math.max(0.5, Math.max(f.w, f.d) * 0.1));
 }
 
-export function footprintRect(p: Point, f: Footprint): Rect {
+export function footprintRect(p: Point, f: Pick<Footprint, 'w' | 'd'>): Rect {
   return { minX: p.x - f.w / 2, maxX: p.x + f.w / 2, minZ: p.z - f.d / 2, maxZ: p.z + f.d / 2 };
 }
