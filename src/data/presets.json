@@ -1,26 +1,18 @@
 [
   {
-    "id": "un-millon",
-    "titulo": "Un millón de pesos",
-    "monto": 1000000,
-    "año": null,
-    "descripcion": "La cifra redonda que todos imaginamos. ¿Cabe en una mochila?",
-    "fuente": null,
-    "fuente_url": null,
-    "referencias": [
-      "persona",
-      "maleta",
-      "silla"
-    ]
-  },
-  {
     "id": "salario-minimo-anual",
+    "sala": "tu-dinero",
     "titulo": "Un año de salario mínimo",
     "monto": 114989.6,
     "año": 2026,
+    "tipo": "oficial",
+    "pregunta": "¿Cuánto gana en un año quien cobra el mínimo?",
     "descripcion": "$315.04 diarios × 365 días, salario mínimo general vigente en 2026.",
-    "fuente": "Bloomberg Línea / CONASAMI",
+    "alcance": "Salario mínimo general (fuera de la zona libre de la frontera norte), bruto, los 365 días del año.",
+    "fuente": "CONASAMI, vía Bloomberg Línea",
     "fuente_url": "https://www.bloomberglinea.com/latinoamerica/mexico/salario-minimo-en-mexico-aumentara-a-mxn31504-diarios-para-2026/",
+    "consulta": null,
+    "compara": ["ingreso-hogar-promedio", "canasta-alimentaria"],
     "referencias": [
       "persona",
       "mochila",
@@ -28,13 +20,99 @@
     ]
   },
   {
-    "id": "aifa",
-    "titulo": "Aeropuerto Felipe Ángeles (AIFA)",
-    "monto": 74535000000,
-    "año": 2022,
-    "descripcion": "Presupuesto de construcción reportado por Sedena. Estimaciones independientes que incluyen accesos y obras complementarias superan los 100 mil millones.",
-    "fuente": "Milenio",
-    "fuente_url": "https://www.milenio.com/politica/aifa-construccion-costo-74-mil-mdp-programado",
+    "id": "canasta-alimentaria",
+    "sala": "tu-dinero",
+    "titulo": "Un año de comida para una familia",
+    "monto": 124349.28,
+    "año": 2026,
+    "tipo": "calculo",
+    "pregunta": "¿Cuánto cuesta cubrir una necesidad tan básica como comer?",
+    "descripcion": "La canasta alimentaria de cuatro personas en una ciudad durante doce meses. En el campo cuesta menos: unos $93,166 al año.",
+    "alcance": "Línea de pobreza extrema por ingresos urbana de septiembre de 2026 ($2,590.61 por persona al mes) × 4 personas × 12 meses. Solo alimentos.",
+    "fuente": "INEGI, líneas de pobreza por ingresos, vía Uno TV",
+    "fuente_url": "https://www.unotv.com/negocios/inegi-lineas-pobreza-mexico-septiembre-2026-gastos-basicos/",
+    "consulta": "2026-10-27",
+    "compara": ["salario-minimo-anual", "ingreso-decil-i"],
+    "referencias": [
+      "persona",
+      "silla",
+      "maleta"
+    ]
+  },
+  {
+    "id": "ingreso-hogar-promedio",
+    "sala": "tu-dinero",
+    "titulo": "Un año de ingreso de un hogar promedio",
+    "monto": 311456,
+    "año": 2024,
+    "tipo": "estadistica",
+    "pregunta": "¿Cuánto entra en un año a una casa mexicana típica?",
+    "descripcion": "Ingreso corriente promedio de los hogares: $77,864 por trimestre, sumando trabajo, rentas y transferencias de todos sus integrantes.",
+    "alcance": "Ingreso corriente total promedio trimestral por hogar (ENIGH 2024) × 4. Promedio, no mediana: los hogares de mayores ingresos lo jalan hacia arriba.",
+    "fuente": "INEGI, ENIGH 2024, vía Bloomberg Línea",
+    "fuente_url": "https://www.bloomberglinea.com/economia/ingreso-de-los-hogares-en-mexico-aumenta-en-medio-de-alzas-salariales-y-empleo-con-amlo/",
+    "consulta": "2026-10-27",
+    "compara": ["salario-minimo-anual", "ingreso-decil-x"],
+    "referencias": [
+      "persona",
+      "maleta",
+      "auto"
+    ]
+  },
+  {
+    "id": "vivienda-promedio",
+    "sala": "tu-dinero",
+    "titulo": "Una vivienda promedio",
+    "monto": 1900000,
+    "año": 2026,
+    "tipo": "estadistica",
+    "pregunta": "¿Cuántos años de salario se necesitan para comprar una casa?",
+    "descripcion": "Precio promedio de las viviendas compradas con crédito hipotecario en México. En la Ciudad de México el promedio llega a $4.3 millones.",
+    "alcance": "Valor promedio nacional de viviendas adquiridas con financiamiento hipotecario, primer semestre de 2026. No incluye intereses del crédito.",
+    "fuente": "Sociedad Hipotecaria Federal, vía Crónica",
+    "fuente_url": "https://www.cronica.com.mx/negocios/2026/10/16/aumenta-en-79-precio-de-la-vivienda-pese-a-baja-en-tasas-hipotecarias/",
+    "consulta": "2026-10-27",
+    "compara": ["ingreso-hogar-promedio", "salario-minimo-anual"],
+    "referencias": [
+      "persona",
+      "auto",
+      "casa"
+    ]
+  },
+  {
+    "id": "km-tren-interurbano",
+    "sala": "tu-ciudad",
+    "titulo": "Un kilómetro de tren interurbano",
+    "monto": 1733102253,
+    "año": 2026,
+    "tipo": "calculo",
+    "pregunta": "¿Cuánto cuesta construir un kilómetro de transporte público?",
+    "descripcion": "El costo total del Tren Interurbano México–Toluca repartido entre sus 57.7 kilómetros: viaducto, túnel, estaciones y trenes.",
+    "alcance": "Inversión total cercana a 100 mil millones de pesos ÷ 57.7 km. Promedio de toda la obra; un tramo en túnel cuesta más que uno a nivel.",
+    "fuente": "Gobierno de México, vía Por Esto!",
+    "fuente_url": "https://www.poresto.com/mexico/2026/2/2/tras-12-anos-y-sobrecostos-entra-en-operacion-el-tren-interurbano-mexicotoluca-el-insurgente.html",
+    "consulta": "2026-10-27",
+    "compara": ["vivienda-promedio", "tren-interurbano"],
+    "referencias": [
+      "persona",
+      "maleta",
+      "auto"
+    ]
+  },
+  {
+    "id": "monterrey-2026",
+    "sala": "tu-ciudad",
+    "titulo": "Presupuesto de Monterrey 2026",
+    "monto": 9792675886.97,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto gasta en un año el gobierno de una gran ciudad?",
+    "descripcion": "Todo lo que el municipio de Monterrey planeó gastar en 2026: alumbrado, basura, policía, parques, obras y nómina.",
+    "alcance": "Presupuesto de egresos aprobado por el Ayuntamiento, sin contar el financiamiento solicitado. Ampliaciones posteriores lo llevaron a unos 11.4 mil millones.",
+    "fuente": "Ayuntamiento de Monterrey, dictamen del 17 de diciembre de 2025",
+    "fuente_url": "https://www.monterrey.gob.mx/pdf/dictamenes_cabildo/2025/5.1_DICTAMEN_PRESUPUESTO_DE_EGRESOS_2026.pdf",
+    "consulta": "2026-10-27",
+    "compara": ["ine-2026", "cdmx-2026"],
     "referencias": [
       "persona",
       "auto",
@@ -42,27 +120,119 @@
     ]
   },
   {
-    "id": "cdmx-2026",
-    "titulo": "Presupuesto de la CDMX 2026",
-    "monto": 313385000000,
+    "id": "tren-interurbano",
+    "sala": "tu-ciudad",
+    "titulo": "Tren Interurbano México–Toluca",
+    "monto": 100000000000,
     "año": 2026,
-    "descripcion": "Gasto total aprobado por el Congreso de la Ciudad de México para todo 2026.",
-    "fuente": "Expansión Política",
-    "fuente_url": "https://politica.expansion.mx/cdmx/2025/12/15/tras-rina-entre-diputados-morena-y-aliados-aprueban-paquete-economico-2026-para-cdmx",
+    "tipo": "oficial",
+    "pregunta": "¿Cuánto cuesta una línea de tren entre dos ciudades?",
+    "descripcion": "57.7 km y siete estaciones, construidos en 12 años. Se planeó con unos 30 mil millones; terminó costando más del triple.",
+    "alcance": "Inversión total aproximada al abrir el último tramo (2 de febrero de 2026), acumulada durante varias administraciones.",
+    "fuente": "Gobierno de México, vía Por Esto!",
+    "fuente_url": "https://www.poresto.com/mexico/2026/2/2/tras-12-anos-y-sobrecostos-entra-en-operacion-el-tren-interurbano-mexicotoluca-el-insurgente.html",
+    "consulta": "2026-10-27",
+    "compara": ["aifa", "tren-maya"],
     "referencias": [
       "persona",
       "vagon",
+      "porteria"
+    ]
+  },
+  {
+    "id": "cdmx-2026",
+    "sala": "tu-ciudad",
+    "titulo": "Presupuesto de la CDMX 2026",
+    "monto": 313385000000,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto cuesta hacer funcionar la capital durante un año?",
+    "descripcion": "Gasto total aprobado por el Congreso de la Ciudad de México para todo 2026.",
+    "alcance": "Presupuesto de egresos total aprobado de la Ciudad de México.",
+    "fuente": "Expansión Política",
+    "fuente_url": "https://politica.expansion.mx/cdmx/2025/12/15/tras-rina-entre-diputados-morena-y-aliados-aprueban-paquete-economico-2026-para-cdmx",
+    "consulta": null,
+    "compara": ["monterrey-2026", "pef-2026"],
+    "referencias": [
+      "persona",
+      "trailer",
       "basquetbol"
     ]
   },
   {
+    "id": "ine-2026",
+    "sala": "tu-pais",
+    "titulo": "Presupuesto del INE 2026",
+    "monto": 14099968884,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto cuesta mantener lista la organización de las elecciones?",
+    "descripcion": "Lo que el Instituto Nacional Electoral tiene para operar en 2026, un año sin elección federal. Aparte, reparte $7,737 millones a los partidos políticos.",
+    "alcance": "Presupuesto del INE aprobado por su Consejo General tras el recorte de la Cámara de Diputados; no incluye el financiamiento a partidos.",
+    "fuente": "INE, vía Quadratín",
+    "fuente_url": "https://mexico.quadratin.com.mx/aprueba-ine-presupuesto-de-14-mmdp-para-2026/",
+    "consulta": "2026-10-27",
+    "compara": ["monterrey-2026", "cdmx-2026"],
+    "referencias": [
+      "persona",
+      "maleta",
+      "auto"
+    ]
+  },
+  {
+    "id": "dia-de-gobierno",
+    "sala": "tu-pais",
+    "titulo": "Un día de gobierno federal",
+    "monto": 27927900548,
+    "año": 2026,
+    "tipo": "calculo",
+    "pregunta": "¿Cuánto gasta el gobierno federal en un solo día?",
+    "descripcion": "El presupuesto federal de 2026 repartido parejo entre los 365 días del año.",
+    "alcance": "Gasto neto total del PEF 2026 ($10,193,683.7 millones) ÷ 365. Un promedio: el gasto real se concentra en ciertas fechas.",
+    "fuente": "Cámara de Diputados, PEF 2026, vía N+",
+    "fuente_url": "https://www.nmas.com.mx/politica/pleno-de-la-camara-de-diputados-aprueba-presupuesto-2026",
+    "consulta": "2026-10-27",
+    "compara": ["pef-2026", "ingreso-hogar-promedio"],
+    "referencias": [
+      "persona",
+      "maleta",
+      "autobus"
+    ]
+  },
+  {
+    "id": "aifa",
+    "sala": "tu-pais",
+    "titulo": "Aeropuerto Felipe Ángeles (AIFA)",
+    "monto": 74535000000,
+    "año": 2022,
+    "tipo": "oficial",
+    "pregunta": "¿Cuánto cuesta construir un aeropuerto?",
+    "descripcion": "Presupuesto de construcción reportado por Sedena. Estimaciones independientes que incluyen accesos y obras complementarias superan los 100 mil millones.",
+    "alcance": "Construcción del aeropuerto según Sedena; sin accesos carreteros ni obras complementarias.",
+    "fuente": "Milenio",
+    "fuente_url": "https://www.milenio.com/politica/aifa-construccion-costo-74-mil-mdp-programado",
+    "consulta": null,
+    "compara": ["tren-maya", "refineria-olmeca"],
+    "referencias": [
+      "persona",
+      "auto",
+      "autobus"
+    ]
+  },
+  {
     "id": "refineria-olmeca",
+    "sala": "tu-pais",
     "titulo": "Refinería Olmeca (Dos Bocas)",
     "monto": 330000000000,
     "año": 2024,
+    "tipo": "oficial",
+    "pregunta": "¿Cuánto cuesta una refinería nueva?",
     "descripcion": "Costo oficial anunciado por el gobierno federal (unos 16,800 millones de dólares). Analistas independientes estiman que fue mayor.",
+    "alcance": "Cifra oficial anunciada por el gobierno federal en 2024.",
     "fuente": "El Universal",
     "fuente_url": "https://www.eluniversal.com.mx/nacion/amlo-refineria-olmeca-de-dos-bocas-tuvo-un-costo-de-330-mil-millones-de-pesos/",
+    "consulta": null,
+    "compara": ["aifa", "salud-2026"],
     "referencias": [
       "persona",
       "trailer",
@@ -70,13 +240,39 @@
     ]
   },
   {
+    "id": "seguridad-2026",
+    "sala": "tu-pais",
+    "titulo": "Presupuesto de seguridad y justicia 2026",
+    "monto": 343000000000,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto se destina a seguridad pública y justicia?",
+    "descripcion": "Poco más de 343 mil millones de pesos para policías, Guardia Nacional, prisiones, fiscalías y tribunales en 2026.",
+    "alcance": "PEF 2026, clasificación funcional: orden público, seguridad interior y justicia. No incluye seguridad nacional (defensa).",
+    "fuente": "Cámara de Diputados, PEF 2026, vía Expansión",
+    "fuente_url": "https://expansion.mx/economia/2025/11/04/diputados-aprueban-presupuesto-egresos-2026",
+    "consulta": "2026-10-27",
+    "compara": ["salud-2026", "educacion-2026"],
+    "referencias": [
+      "persona",
+      "basquetbol",
+      "avion"
+    ]
+  },
+  {
     "id": "tren-maya",
+    "sala": "tu-pais",
     "titulo": "Tren Maya",
     "monto": 500000000000,
     "año": 2025,
+    "tipo": "estimado",
+    "pregunta": "¿Cuánto costó al final el Tren Maya?",
     "descripcion": "Estimación de análisis independientes (IMCO) del costo acumulado. La cifra oficial de 2021 era de 179 mil millones.",
-    "fuente": "Vanguardia",
+    "alcance": "Costo acumulado estimado a 2025; un presupuesto inicial y un costo acumulado no son la misma cosa.",
+    "fuente": "IMCO, vía Vanguardia",
     "fuente_url": "https://vanguardia.com.mx/noticias/tren-maya-miles-de-millones-invertidos-y-numeros-rojos-al-cumplir-dos-anos-HP18604276",
+    "consulta": null,
+    "compara": ["aifa", "tren-interurbano"],
     "referencias": [
       "persona",
       "porteria",
@@ -84,17 +280,163 @@
     ]
   },
   {
-    "id": "pef-2026",
-    "titulo": "Presupuesto federal 2026 (PEF)",
-    "monto": 10193683700000,
+    "id": "salud-2026",
+    "sala": "tu-pais",
+    "titulo": "Presupuesto de salud 2026",
+    "monto": 965662000000,
     "año": 2026,
-    "descripcion": "Gasto neto total del gobierno federal aprobado por la Cámara de Diputados para 2026.",
-    "fuente": "N+",
-    "fuente_url": "https://www.nmas.com.mx/politica/pleno-de-la-camara-de-diputados-aprueba-presupuesto-2026",
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto se invierte en la salud de todo el país?",
+    "descripcion": "Hospitales, clínicas, medicinas y personal médico de IMSS, ISSSTE, IMSS-Bienestar y la Secretaría de Salud. El aumento frente a 2025 se explica sobre todo por el IMSS.",
+    "alcance": "PEF 2026, clasificación funcional: salud.",
+    "fuente": "Cámara de Diputados, PEF 2026, vía Expansión",
+    "fuente_url": "https://expansion.mx/economia/2025/11/04/diputados-aprueban-presupuesto-egresos-2026",
+    "consulta": "2026-10-27",
+    "compara": ["educacion-2026", "deuda-2026"],
     "referencias": [
       "persona",
       "casa",
+      "alberca"
+    ]
+  },
+  {
+    "id": "educacion-2026",
+    "sala": "tu-pais",
+    "titulo": "Presupuesto de educación 2026",
+    "monto": 1120000000000,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto se invierte en educación frente a otras funciones de gobierno?",
+    "descripcion": "Escuelas, maestros, universidades públicas y becas en 2026: unos 1.12 billones de pesos.",
+    "alcance": "PEF 2026, clasificación funcional: educación. Cifra redondeada por la fuente.",
+    "fuente": "Cámara de Diputados, PEF 2026, vía Expansión",
+    "fuente_url": "https://expansion.mx/economia/2025/11/04/diputados-aprueban-presupuesto-egresos-2026",
+    "consulta": "2026-10-27",
+    "compara": ["salud-2026", "deuda-2026"],
+    "referencias": [
+      "persona",
+      "avion",
+      "alberca"
+    ]
+  },
+  {
+    "id": "deuda-2026",
+    "sala": "tu-pais",
+    "titulo": "Intereses de la deuda pública 2026",
+    "monto": 1600000000000,
+    "año": 2026,
+    "tipo": "proyectado",
+    "pregunta": "¿Cuánto cuesta financiar la deuda que ya existe?",
+    "descripcion": "Solo el costo de deber: intereses, comisiones y gastos de la deuda pública en 2026, alrededor del 15% de todo el gasto federal.",
+    "alcance": "Costo financiero estimado en el Paquete Económico 2026 (SHCP), redondeado. No incluye el pago del capital.",
+    "fuente": "SHCP, Paquete Económico 2026, vía Veritas",
+    "fuente_url": "https://www.veritas.org.mx/Economia-y-finanzas/Finanzas/Paquete-economico-2026-y-el-costo-financiero-de-la-deuda",
+    "consulta": "2026-10-27",
+    "compara": ["salud-2026", "educacion-2026"],
+    "referencias": [
+      "persona",
+      "basquetbol",
+      "alberca"
+    ]
+  },
+  {
+    "id": "pef-2026",
+    "sala": "tu-pais",
+    "titulo": "Presupuesto federal 2026 (PEF)",
+    "monto": 10193683700000,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto gasta el gobierno federal en todo un año?",
+    "descripcion": "Gasto neto total del gobierno federal aprobado por la Cámara de Diputados para 2026.",
+    "alcance": "Gasto neto total del Presupuesto de Egresos de la Federación 2026.",
+    "fuente": "Cámara de Diputados, vía N+",
+    "fuente_url": "https://www.nmas.com.mx/politica/pleno-de-la-camara-de-diputados-aprueba-presupuesto-2026",
+    "consulta": "2026-10-27",
+    "compara": ["ingreso-hogar-promedio", "dia-de-gobierno"],
+    "referencias": [
+      "persona",
+      "alberca",
       "futbol"
+    ]
+  },
+  {
+    "id": "ingreso-decil-i",
+    "sala": "las-diferencias",
+    "titulo": "Un año de ingreso del 10% más pobre",
+    "monto": 67180,
+    "año": 2024,
+    "tipo": "estadistica",
+    "pregunta": "¿Con cuánto vive en un año un hogar del decil más pobre?",
+    "descripcion": "Los hogares del primer decil, el 10% con menores ingresos, reciben en promedio $16,795 por trimestre.",
+    "alcance": "Ingreso corriente promedio trimestral por hogar del decil I (ENIGH 2024) × 4.",
+    "fuente": "INEGI, ENIGH 2024, vía Bloomberg Línea",
+    "fuente_url": "https://www.bloomberglinea.com/economia/ingreso-de-los-hogares-en-mexico-aumenta-en-medio-de-alzas-salariales-y-empleo-con-amlo/",
+    "consulta": "2026-10-27",
+    "compara": ["ingreso-decil-x", "canasta-alimentaria"],
+    "referencias": [
+      "persona",
+      "mochila",
+      "silla"
+    ]
+  },
+  {
+    "id": "ingreso-decil-x",
+    "sala": "las-diferencias",
+    "titulo": "Un año de ingreso del 10% más rico",
+    "monto": 944380,
+    "año": 2024,
+    "tipo": "estadistica",
+    "pregunta": "¿Cuánto más recibe un hogar del decil más rico?",
+    "descripcion": "Los hogares del décimo decil, el 10% con mayores ingresos, reciben en promedio $236,095 por trimestre: 14 veces lo del primer decil.",
+    "alcance": "Ingreso corriente promedio trimestral por hogar del decil X (ENIGH 2024) × 4. Las encuestas captan mal los ingresos más altos.",
+    "fuente": "INEGI, ENIGH 2024, vía Bloomberg Línea",
+    "fuente_url": "https://www.bloomberglinea.com/economia/ingreso-de-los-hogares-en-mexico-aumenta-en-medio-de-alzas-salariales-y-empleo-con-amlo/",
+    "consulta": "2026-10-27",
+    "compara": ["ingreso-decil-i", "salario-minimo-anual"],
+    "referencias": [
+      "persona",
+      "maleta",
+      "auto"
+    ]
+  },
+  {
+    "id": "vida-salario-minimo",
+    "sala": "las-diferencias",
+    "titulo": "Una vida de trabajo con salario mínimo",
+    "monto": 4599584,
+    "año": 2026,
+    "tipo": "calculo",
+    "pregunta": "¿Cuánto junta alguien que trabaja toda su vida por el mínimo?",
+    "descripcion": "Cuarenta años cobrando el salario mínimo de 2026, sin gastar un solo peso.",
+    "alcance": "$114,989.60 × 40 años, en pesos de 2026, sin inflación, aumentos ni intereses.",
+    "fuente": "CONASAMI, vía Bloomberg Línea",
+    "fuente_url": "https://www.bloomberglinea.com/latinoamerica/mexico/salario-minimo-en-mexico-aumentara-a-mxn31504-diarios-para-2026/",
+    "consulta": null,
+    "compara": ["fortuna-slim", "vivienda-promedio"],
+    "referencias": [
+      "persona",
+      "auto",
+      "casa"
+    ]
+  },
+  {
+    "id": "fortuna-slim",
+    "sala": "las-diferencias",
+    "titulo": "La mayor fortuna de México",
+    "monto": 2209625000000,
+    "año": 2026,
+    "tipo": "estimado",
+    "pregunta": "¿Qué diferencia hay entre ganar dinero trabajando y poseer grandes activos?",
+    "descripcion": "Patrimonio estimado de Carlos Slim y su familia: 125 mil millones de dólares. Casi todo son acciones de empresas, no dinero en efectivo.",
+    "alcance": "Lista anual de Forbes (marzo de 2026), convertida a 17.677 pesos por dólar (FIX del 6 de marzo de 2026). Cambia a diario con la bolsa.",
+    "fuente": "Forbes, vía Zeta Tijuana",
+    "fuente_url": "https://zetatijuana.com/2026/03/musk-concentra-839-mil-millones-de-dolares-y-encabeza-lista-forbes-slim-llega-a-125-mil-mdd/",
+    "consulta": "2026-10-27",
+    "compara": ["vida-salario-minimo", "pef-2026"],
+    "referencias": [
+      "persona",
+      "casa",
+      "alberca"
     ]
   }
 ]

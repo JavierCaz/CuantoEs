@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PALLET_BASE, unitSizes, type Layout, type Placement, type Size, type UnitKind } from './layout';
+import { PALLET_BASE, unitSizes, type Layout, type Placement, type Rect, type Size, type UnitKind } from './layout';
 import type { Denomination } from './denominations';
 import { billFace, palletSide, paperEdge, repeated } from './textures';
 
@@ -28,10 +28,11 @@ export class MoneyRenderer {
   private time = 0;
 
   constructor(bill: Denomination, anisotropy: number) {
-    this.materials = createMaterials(bill, anisotropy);
+    this.materials = sharedMaterials(bill, anisotropy);
   }
 
-  show(layout: Layout) {
+  // `animate`: drop every unit into place, a wave rolling from the entrance to the back.
+  show(layout: Layout, animate = true) {
     this.clear();
     const { sizes, placements } = layout;
     const depth = Math.max(1, -layout.bounds.minZ);
@@ -71,7 +72,7 @@ export class MoneyRenderer {
       this.group.add(table);
     }
 
-    this.time = 0;
+    this.time = animate ? 0 : Infinity;
     this.update(0);
   }
 
@@ -102,24 +103,6 @@ export class MoneyRenderer {
     }
   }
 
-  // Footprints of everything solid, for collision.
-  obstacles(layout: Layout) {
-    const rects = [];
-    const footprint = (p: Placement, s: Size) => ({
-      minX: p.x - s.w / 2,
-      maxX: p.x + s.w / 2,
-      minZ: p.z - s.d / 2,
-      maxZ: p.z + s.d / 2,
-    });
-    for (const kind of ['tarima', 'bloque'] as UnitKind[]) {
-      for (const p of layout.placements[kind]) {
-        if (p.y === 0) rects.push(footprint(p, layout.sizes[kind])); // stacked ones share a footprint
-      }
-    }
-    if (layout.table) rects.push(layout.table);
-    return rects;
-  }
-
   private clear() {
     this.animated = [];
     for (const child of [...this.group.children]) {
@@ -129,6 +112,37 @@ export class MoneyRenderer {
       this.group.remove(mesh);
     }
   }
+}
+
+// Footprints of everything solid, for collision, in the layout's own coordinates.
+export function moneyObstacles(layout: Layout): Rect[] {
+  const rects: Rect[] = [];
+  const footprint = (p: Placement, s: Size) => ({
+    minX: p.x - s.w / 2,
+    maxX: p.x + s.w / 2,
+    minZ: p.z - s.d / 2,
+    maxZ: p.z + s.d / 2,
+  });
+  for (const kind of ['tarima', 'bloque'] as UnitKind[]) {
+    for (const p of layout.placements[kind]) {
+      if (p.y === 0) rects.push(footprint(p, layout.sizes[kind])); // stacked ones share a footprint
+    }
+  }
+  if (layout.table) rects.push(layout.table);
+  return rects;
+}
+
+// Every exhibit in the museum draws with the same handful of materials and textures.
+const materialCache = new Map<string, Record<UnitKind, FaceMaterials>>();
+function sharedMaterials(bill: Denomination, anisotropy: number) {
+  const key = `${bill.value}:${anisotropy}`;
+  let materials = materialCache.get(key);
+  if (!materials) {
+    materials = createMaterials(bill, anisotropy);
+    for (const m of Object.values(materials).flat()) m.userData.shared = true;
+    materialCache.set(key, materials);
+  }
+  return materials;
 }
 
 function createMaterials(bill: Denomination, anisotropy: number): Record<UnitKind, FaceMaterials> {

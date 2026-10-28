@@ -15,6 +15,7 @@
             <span id="hud-amount" class="hud-amount"></span>
             <span id="hud-words" class="hud-words"></span>
             <span id="hud-alt" class="hud-alt"></span>
+            <span id="hud-you" class="hud-you"></span>
           </summary>
 
           <form id="amount-form" class="amount-form" autocomplete="off">
@@ -26,9 +27,18 @@
             <p id="amount-preview" class="amount-preview" aria-live="polite"></p>
           </form>
 
+          <form id="income-form" class="amount-form" autocomplete="off">
+            <label for="income-input">¿Cuánto tiempo necesitarías tú? Tu ingreso mensual</label>
+            <div class="amount-row">
+              <input id="income-input" type="text" inputmode="decimal" placeholder="Ej. 15 mil" />
+              <button type="submit">Usar</button>
+            </div>
+            <p id="income-status" class="amount-preview" aria-live="polite"></p>
+          </form>
+
           <section>
-            <h2>Salas del museo</h2>
-            <div id="presets" class="presets"></div>
+            <h2>Mapa del museo</h2>
+            <nav id="presets" class="presets" aria-label="Salas del museo"></nav>
           </section>
 
           <section id="hud-details" class="hud-details"></section>
@@ -44,7 +54,7 @@
 
       <div id="overlay" class="overlay">
         <h1>¿Cuánto es?</h1>
-        <p class="pitch">Recorre en 3D cuánto ocupan, en billetes de $500, las cifras que escuchas en las noticias.</p>
+        <p class="pitch">Un museo de escala y perspectiva: recorre en 3D cuánto ocupan, en billetes de $500, las cifras que escuchas en las noticias.</p>
         <p class="desktop-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> para moverte · ratón para mirar · <kbd>Shift</kbd> para correr · <kbd>V</kbd> vista aérea · <kbd>M</kbd> música</p>
         <p class="touch-only">Joystick a la izquierda · arrastra a la derecha para mirar</p>
         <button id="enter" class="enter" type="button">Entrar</button>

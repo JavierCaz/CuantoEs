@@ -4,15 +4,16 @@ import { ARENA } from './palette';
 
 type UpdateFn = (dt: number) => void;
 
-// Direction the sunlight comes from (normalized later).
-const SUN_DIRECTION = new THREE.Vector3(0.45, 1, 0.3);
+// Direction the sunlight comes from (normalized later): high but raking, so the skylights throw
+// bars of light across the floor and the walls cast long, sharp shadows.
+const SUN_DIRECTION = new THREE.Vector3(0.55, 1, 0.35);
 
 // Owns the three things every Three.js app needs: a scene, a camera and a renderer.
 export class World {
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   readonly renderer: THREE.WebGLRenderer;
-  private readonly sun = new THREE.DirectionalLight(0xffffff, 1.4);
+  private readonly sun = new THREE.DirectionalLight(0xfff0d8, 2.1); // warm midday sun
   private updaters: UpdateFn[] = [];
   private lastTime = 0;
 
@@ -75,7 +76,8 @@ export class World {
   }
 
   private addLights(shadowMapSize: number) {
-    const sky = new THREE.HemisphereLight(0xffffff, 0x8a8172, 1.6);
+    // Fill light from the sky and the warm ground. Kept low so shade reads as shade.
+    const sky = new THREE.HemisphereLight(0xf4ead8, 0x6e5f4e, 1.15);
     this.scene.add(sky);
 
     this.sun.castShadow = true;

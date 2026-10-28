@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_BILL } from '../src/money/denominations';
+import { computeLayout } from '../src/money/layout';
 import { WALKWAY, footprintRect, placeReferences } from '../src/museum/referenceLayout';
 import { ROOMS } from '../src/museum/rooms';
 import { REFERENCES, TEMPORAL_REFERENCES, type ReferenceId } from '../src/scene/references';
@@ -43,15 +45,29 @@ describe('placeReferences', () => {
     expect(b.x + 0.5).toBeLessThan(-6); // the table is on the left: a step past it
   });
 
-  it('gives each room its own references, apart from the person who stands in every one', () => {
-    const shown = ROOMS.flatMap((r) => r.referencias).filter((id) => id !== 'persona');
-    expect(new Set(shown).size).toBe(shown.length);
+  it('never shows the same references in two halls in a row', () => {
+    for (let i = 1; i < ROOMS.length; i++) expect(ROOMS[i].referencias).not.toEqual(ROOMS[i - 1].referencias);
   });
 
-  it('grows the references with the amount', () => {
+  // A reference that dwarfs the money stretches the hall around it and leaves the money a thin strip
+  // in an empty floor. The small halls are the exception: there the house next to a table of bills
+  // is the point.
+  it('never lets a reference outgrow the money once it fills pallets', () => {
+    for (const r of ROOMS) {
+      const footprints = r.referencias.map((id) => REFERENCES[id as ReferenceId].footprint);
+      const layout = computeLayout(r.monto, DEFAULT_BILL, footprints);
+      if (layout.counts.tarima + layout.counts.bloque === 0) continue;
+      const biggest = Math.max(...footprints.map((f) => f.w * f.d));
+      expect(biggest, r.id).toBeLessThanOrEqual(layout.floor);
+    }
+  });
+
+  it('grows the references with the amount within each sala', () => {
     const biggest = (ids: string[]) =>
       Math.max(...ids.map((id) => REFERENCES[id as ReferenceId].footprint).map((f) => f.w * f.d));
-    const sizes = ROOMS.map((r) => biggest(r.referencias));
-    expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
+    for (const sala of new Set(ROOMS.map((r) => r.sala))) {
+      const sizes = ROOMS.filter((r) => r.sala === sala).map((r) => biggest(r.referencias));
+      expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
+    }
   });
 });

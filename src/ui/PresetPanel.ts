@@ -1,45 +1,59 @@
-import data from '../data/presets.json';
 import { shortAmount } from '../i18n/format';
+import { ROOMS, SALAS } from '../museum/collection';
 
-export interface Preset {
-  id: string;
-  titulo: string;
-  monto: number;
-  año: number | null;
-  descripcion: string;
-  fuente: string | null;
-  fuente_url: string | null;
-  referencias: string[]; // scale objects shown in its room, smallest first (see scene/references)
-}
+// The museum map in the side panel: the spaces of the tour, then each sala with its halls,
+// in walking order. Selecting one takes you there.
+const SPACES: [string, string][] = [
+  ['plaza', 'Plaza de acceso'],
+  ['vestibulo', 'Vestíbulo'],
+];
 
-export const PRESETS: Preset[] = data;
+export function mountPresetPanel(container: HTMLElement, onSelect: (id: string) => void) {
+  const buttons: HTMLButtonElement[] = [];
+  const button = (id: string, title: string, kicker?: string, amount?: string) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'preset';
+    b.dataset.id = id;
+    const name = document.createElement('span');
+    if (kicker) {
+      const k = document.createElement('span');
+      k.className = 'preset-room';
+      k.textContent = kicker;
+      name.append(k);
+    }
+    name.append(title);
+    b.append(name);
+    if (amount) {
+      const a = document.createElement('span');
+      a.className = 'preset-amount';
+      a.textContent = amount;
+      b.append(a);
+    }
+    b.addEventListener('click', () => onSelect(id));
+    buttons.push(b);
+    return b;
+  };
+  const group = (title: string, subtitle?: string) => {
+    const h = document.createElement('h3');
+    h.textContent = title;
+    if (subtitle) {
+      const s = document.createElement('span');
+      s.className = 'preset-scale';
+      s.textContent = ` · ${subtitle}`;
+      h.append(s);
+    }
+    container.append(h);
+  };
 
-export function findPreset(id: string | null): Preset | undefined {
-  return PRESETS.find((p) => p.id === id);
-}
-
-// One button per museum room, in walking order.
-export function mountPresetPanel(container: HTMLElement, rooms: Preset[], onSelect: (index: number) => void) {
-  const buttons = rooms.map((preset, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'preset';
-    button.dataset.id = preset.id;
-
-    const title = document.createElement('span');
-    const number = document.createElement('span');
-    number.className = 'preset-room';
-    number.textContent = `Sala ${index + 1}`;
-    title.append(number, preset.titulo);
-    const amount = document.createElement('span');
-    amount.className = 'preset-amount';
-    amount.textContent = shortAmount(preset.monto);
-    button.append(title, amount);
-
-    button.addEventListener('click', () => onSelect(index));
-    container.append(button);
-    return button;
+  group('Recorrido');
+  for (const [id, title] of SPACES) container.append(button(id, title));
+  SALAS.forEach((sala, n) => {
+    group(`Sala ${n + 1} · ${sala.nombre}`, sala.escala);
+    for (const room of ROOMS.filter((r) => r.sala === sala.id)) container.append(button(room.id, room.titulo, undefined, shortAmount(room.monto)));
   });
+  group('Cierre');
+  container.append(button('reflexion', 'Patio de reflexión', 'Fuentes y salida'));
 
   return {
     setActive(id: string | null) {

@@ -193,6 +193,15 @@ body.locked .panel {
   color: var(--muted);
 }
 
+.hud-you {
+  font-size: 0.85rem;
+  color: var(--fg);
+}
+
+.hud-you:empty {
+  display: none;
+}
+
 .panel section,
 .amount-form {
   padding: 12px 16px;
@@ -261,6 +270,20 @@ body.locked .panel {
   gap: 4px;
 }
 
+.presets h3 {
+  margin: 10px 0 2px;
+}
+
+.presets h3:first-child {
+  margin-top: 0;
+}
+
+.preset-scale {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .preset {
   display: flex;
   justify-content: space-between;
@@ -303,6 +326,16 @@ body.locked .panel {
   color: var(--accent);
 }
 
+.hud-details .question {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--fg);
+}
+
+.hud-details .sources {
+  font-size: 0.8rem;
+}
+
 .hud-details dl {
   display: grid;
   gap: 8px;
@@ -333,7 +366,7 @@ body.locked .panel {
 
 /* ---------- Misc ---------- */
 
-/* Walking through a door: the screen fills with the mist's color while the next room is built. */
+/* Jumping to another space: the screen fills with the walls' color while you move. */
 .fade {
   position: absolute;
   inset: 0;

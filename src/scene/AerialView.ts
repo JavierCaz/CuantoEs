@@ -5,7 +5,7 @@ const DURATION = 2; // seconds
 
 type Mode = 'walk' | 'toAerial' | 'aerial' | 'toWalk';
 
-// Flies the camera between the player's eyes and an overview of the whole warehouse.
+// Flies the camera between the player's eyes and an overview of the space you're in.
 // Orientation is interpolated with quaternions: blending two Euler angle sets can
 // take strange detours, while slerp always takes the shortest rotation.
 export class AerialView {
@@ -18,7 +18,11 @@ export class AerialView {
   // Must be a camera: lookAt() points a camera's -Z at the target, but a plain Object3D's +Z.
   private readonly helper = new THREE.PerspectiveCamera();
 
-  constructor(private camera: THREE.PerspectiveCamera) {}
+  // `instant`: for anyone who asked their system to reduce motion, cut instead of flying.
+  constructor(
+    private camera: THREE.PerspectiveCamera,
+    private instant = false,
+  ) {}
 
   get isWalking() {
     return this.mode === 'walk';
@@ -52,7 +56,7 @@ export class AerialView {
       return;
     }
 
-    this.t = Math.min(this.t + dt / DURATION, 1);
+    this.t = this.instant ? 1 : Math.min(this.t + dt / DURATION, 1);
     const k = easeInOutCubic(this.t);
     const [toPos, toQuat] = this.mode === 'toAerial' ? [this.aerialPos, this.aerialQuat] : [eyePos, eyeQuat];
     this.camera.position.lerpVectors(this.fromPos, toPos, k);
