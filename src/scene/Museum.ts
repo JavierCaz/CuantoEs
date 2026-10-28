@@ -141,7 +141,7 @@ const furnishings: Record<Space['kind'], Furnish> = {
         size: 0.075,
         wrap: true,
       },
-      { text: 'W A S D o joystick · Shift para correr · V vista aérea · M música', size: 0.065, color: MUTED, wrap: true },
+      { text: 'W A S D o joystick · doble W para correr · V vista aérea · M música', size: 0.065, color: MUTED, wrap: true },
     ]);
   },
 
