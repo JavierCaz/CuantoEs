@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import './style.css';
 import { World } from './scene/World';
 import { Museum } from './scene/Museum';
-import { REFERENCES, TEMPORAL_REFERENCES, type ReferenceId } from './scene/references';
+import { REFERENCES, TEMPORAL_REFERENCES, setEnvironment, type ReferenceId } from './scene/references';
 import { AerialView } from './scene/AerialView';
 import { Player } from './controls/Player';
 import { DesktopControls } from './controls/DesktopControls';
@@ -34,6 +34,7 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 // ---------- 3D scene ----------
 
 const world = new World(app, { lowPower: isTouch });
+setEnvironment(world.environment); // what the scale references' paint, glass and chrome reflect
 const aerial = new AerialView(world.camera, reducedMotion);
 const music = new Soundtrack();
 const player = new Player({ minX: 0, maxX: 0, minZ: 0, maxZ: 0 });
@@ -151,6 +152,10 @@ const startIndex = Math.max(0, complex.spaces.findIndex((s) => s.id === start));
 player.spawn(complex.spaces[startIndex].spawn.x, complex.spaces[startIndex].spawn.z);
 player.applyTo(world.camera);
 enterSpace(startIndex);
+// While the welcome screen is up, compile the shaders of every material in the museum, halls not yet
+// in view included (in parallel where the browser can): otherwise each new kind of surface stalls a
+// frame the first time you walk up to it. Rebuilds reuse the same materials, so once is enough.
+setTimeout(() => void world.renderer.compileAsync(museum!.group, world.camera, world.scene), 300);
 
 // ---------- Input ----------
 

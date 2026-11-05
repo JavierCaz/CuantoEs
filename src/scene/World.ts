@@ -13,6 +13,7 @@ export class World {
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   readonly renderer: THREE.WebGLRenderer;
+  readonly environment: THREE.Texture; // what glossy surfaces reflect; see makeEnvironment()
   private readonly sun = new THREE.DirectionalLight(0xfff0d8, 2.1); // warm midday sun
   private updaters: UpdateFn[] = [];
   private lastTime = 0;
@@ -34,6 +35,7 @@ export class World {
     container.prepend(this.renderer.domElement);
 
     this.addLights(options.lowPower ? 1024 : 2048);
+    this.environment = this.makeEnvironment();
     this.resize();
     window.addEventListener('resize', () => this.resize());
   }
@@ -85,6 +87,45 @@ export class World {
     this.sun.shadow.bias = -0.0005;
     this.sun.shadow.normalBias = 0.03; // avoids "shadow acne" stripes on lit surfaces
     this.scene.add(this.sun, this.sun.target);
+  }
+
+  // A reflection of the museum, just precise enough for paint, glass and chrome: a warm sky over a
+  // sandy floor, crossed by the bright slots of the skylights. It's rendered once into a cube map and
+  // prefiltered for every roughness (PMREM), so a rough surface gets a blurrier reflection.
+  // Only the scale references use it (see references/kit.ts); the architecture keeps its look.
+  private makeEnvironment(): THREE.Texture {
+    const room = new THREE.Scene();
+    const sky = new THREE.SphereGeometry(50, 32, 16);
+    const zenith = new THREE.Color(0xfff4e2).multiplyScalar(1.1);
+    const horizon = new THREE.Color(ARENA).multiplyScalar(0.85);
+    const ground = new THREE.Color(0x6e5f4e).multiplyScalar(0.55);
+    const position = sky.attributes.position;
+    const colors = new Float32Array(position.count * 3);
+    const c = new THREE.Color();
+    for (let i = 0; i < position.count; i++) {
+      const t = position.getY(i) / 50; // -1 straight down … 1 straight up
+      if (t >= 0) c.lerpColors(horizon, zenith, Math.pow(t, 0.7));
+      else c.lerpColors(horizon, ground, Math.min(1, -t * 5)); // the walls fall off quickly into the floor
+      colors.set([c.r, c.g, c.b], i * 3);
+    }
+    sky.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    room.add(new THREE.Mesh(sky, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
+
+    // Skylight slots overhead, many times brighter than the sky: they give glossy things their highlights.
+    const slot = new THREE.PlaneGeometry(1.6, 80).rotateX(Math.PI / 2); // facing down
+    const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.97, 0.9).multiplyScalar(9) });
+    for (const x of [-14, 0, 14]) room.add(new THREE.Mesh(slot, glow).translateX(x).translateY(30));
+
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const texture = pmrem.fromScene(room, 0.02).texture;
+    pmrem.dispose();
+    room.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        (o.material as THREE.Material).dispose();
+      }
+    });
+    return texture;
   }
 
   private resize() {

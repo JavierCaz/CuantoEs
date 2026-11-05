@@ -2,12 +2,15 @@ import * as THREE from 'three';
 import type { Rect } from '../../money/layout';
 import type { Point } from '../../museum/referenceLayout';
 import { disposeObject } from '../dispose';
+import { avion } from './aircraft';
 import { casa } from './buildings';
 import { maleta, maletin, mochila, silla } from './objects';
 import { persona } from './people';
 import { alberca, basquetbol, futbol, porteria } from './sports';
 import { makeLabel, type Reference, type ReferenceSpec } from './shared';
-import { auto, autobus, avion, trailer, vagon } from './vehicles';
+import { auto, autobus, trailer, vagon } from './vehicles';
+
+export { setEnvironment } from './kit';
 
 // Every scale reference a room can show, by the id presets.json uses in "referencias".
 export const REFERENCES = {

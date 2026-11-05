@@ -3,7 +3,7 @@ import type { Rect } from '../../money/layout';
 import type { Footprint } from '../../museum/referenceLayout';
 import { ARENA, VERDE } from '../palette';
 
-// Familiar objects at real scale, built from primitives. Each one is centered on its local
+// Familiar objects at real scale, built with the toolkit in kit.ts. Each one is centered on its local
 // origin and fits inside its footprint, so the room planner can place it without building it.
 
 export interface Reference {
@@ -19,29 +19,7 @@ export interface ReferenceSpec {
   build: (anisotropy: number) => Reference;
 }
 
-export const box = (w: number, h: number, d: number, color: number, x = 0, y = 0, z = 0) => {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color }));
-  mesh.position.set(x, y + h / 2, z); // y is the bottom of the box
-  return mesh;
-};
-
 export const centered = (w: number, d: number): Rect => ({ minX: -w / 2, maxX: w / 2, minZ: -d / 2, maxZ: d / 2 });
-
-// A wheel lying on its side with the axle along Z, resting on the floor.
-export function wheels(radius: number, width: number, xs: number[], halfTrack: number, color = 0x1a1a1a) {
-  const geometry = new THREE.CylinderGeometry(radius, radius, width, 16);
-  geometry.rotateX(Math.PI / 2); // cylinders stand along Y; lay the axle along Z
-  const material = new THREE.MeshStandardMaterial({ color });
-  const group = new THREE.Group();
-  for (const x of xs) {
-    for (const z of [-halfTrack, halfTrack]) {
-      const wheel = new THREE.Mesh(geometry, material);
-      wheel.position.set(x, radius, z);
-      group.add(wheel);
-    }
-  }
-  return group;
-}
 
 // A flat surface painted with Canvas 2D in meters: `paint` draws with 1 unit = 1 meter,
 // x across the width (X) and y across the depth (Z), the top of the canvas toward -Z.
