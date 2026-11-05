@@ -123,13 +123,13 @@ button {
   }
 }
 
-/* ---------- Side panel ---------- */
+/* ---------- Side panels ---------- */
 
+/* Two panels: the menu on the left (your amounts, the museum map), and what you're looking at on
+   the right, above the buttons in the corner. */
 .panel {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
-  left: 12px;
-  width: min(360px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
   border: 1px solid var(--border);
@@ -142,6 +142,29 @@ button {
 body.locked .panel {
   opacity: 0.7;
   pointer-events: none;
+}
+
+.panel-menu {
+  left: 12px;
+  width: min(320px, calc(100vw - 24px));
+}
+
+.panel-info {
+  right: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 90px); /* clear of the buttons in the bottom-right corner */
+}
+
+/* On narrow screens each panel starts as a strip across half the top; opening one takes the width. */
+@media (max-width: 760px) {
+  .panel-menu,
+  .panel-info {
+    width: calc(50vw - 18px);
+  }
+  .panel:has(details[open]) {
+    width: calc(100vw - 24px);
+    z-index: 2;
+  }
 }
 
 .panel summary {
@@ -161,6 +184,10 @@ body.locked .panel {
   margin-top: 6px;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.panel-menu summary::after {
+  content: "Mostrar menú ▾";
 }
 
 .panel details[open] summary::after {
@@ -276,13 +303,6 @@ body.locked .panel {
 
 .presets h3:first-child {
   margin-top: 0;
-}
-
-.presets h4 {
-  margin: 6px 0 0 2px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
 }
 
 .preset-scale {
@@ -403,7 +423,8 @@ body.locked .panel {
 .debug {
   position: absolute;
   top: max(8px, env(safe-area-inset-top));
-  right: 8px;
+  left: 50%;
+  translate: -50% 0;
   padding: 4px 8px;
   border-radius: 4px;
   background: rgb(41 44 43 / 0.7);

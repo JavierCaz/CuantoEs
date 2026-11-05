@@ -1,8 +1,8 @@
 import { shortAmount } from '../i18n/format';
 import { GROUPED_ROOMS, ROOMS, SALAS } from '../museum/collection';
 
-// The museum map in the side panel: the spaces of the tour, then each sala with its halls and
-// their exhibits, in walking order. Selecting an exhibit takes you to its hall and puts it on show.
+// The museum map in the side panel: the spaces of the tour, then each sala with its halls, in
+// walking order. Selecting one takes you to its entrance; its pads choose the exhibit on show.
 const SPACES: [string, string][] = [
   ['plaza', 'Plaza de acceso'],
   ['vestibulo', 'Vestíbulo'],
@@ -51,12 +51,8 @@ export function mountPresetPanel(container: HTMLElement, onSelect: (id: string) 
   SALAS.forEach((sala, n) => {
     group(`Sala ${n + 1} · ${sala.nombre}`, sala.escala);
     for (const { grupo, rooms } of GROUPED_ROOMS.filter((g) => g.grupo.sala === sala.id)) {
-      if (rooms.length > 1) {
-        const h = document.createElement('h4');
-        h.textContent = grupo.nombre;
-        container.append(h);
-      }
-      for (const room of rooms.map((i) => ROOMS[i])) container.append(button(room.id, room.titulo, undefined, shortAmount(room.monto)));
+      const amount = rooms.length === 1 ? shortAmount(ROOMS[rooms[0]].monto) : `${rooms.length} cifras`;
+      container.append(button(grupo.id, grupo.nombre, undefined, amount));
     }
   });
   group('Cierre');

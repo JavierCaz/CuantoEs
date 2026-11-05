@@ -326,7 +326,7 @@ const furnishings: Record<Space['kind'], Furnish> = {
       { text: 'FIN DEL RECORRIDO', size: 0.09, color: ACCENT, bold: true },
       { text: 'La arquitectura permanece; las cifras cambian.', size: 0.13, bold: true, wrap: true },
       { text: 'Vuelve a cualquier sala desde el menú, o escribe un monto para abrir la Sala temporal.', size: 0.075, wrap: true },
-      { text: '¿Cuánto tiempo necesitarías tú? Escribe tu ingreso mensual en el menú y cada sala te lo dirá.', size: 0.075, color: MUTED, wrap: true },
+      { text: '¿Cuánto tiempo necesitarías tú? Escribe tu ingreso mensual en el panel de la derecha y cada sala te lo dirá.', size: 0.075, color: MUTED, wrap: true },
     ]);
     // Every source in the museum, on the long wall, to check and come back to.
     const lines: Line[] = PRESETS.map((p) => ({ text: `${p.titulo} — ${p.fuente}${p.año ? ` (${p.año})` : ''}`, size: 0.11 }));

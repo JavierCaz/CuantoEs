@@ -8,14 +8,12 @@
   </head>
   <body>
     <div id="app">
-      <aside class="panel">
-        <details id="panel-details" open>
+      <!-- Left: getting around (an amount of your own, the museum map). Right: what you're looking at,
+           and your income to measure it with. -->
+      <aside class="panel panel-menu">
+        <details id="menu-details" open>
           <summary>
             <span class="brand">¿Cuánto es?</span>
-            <span id="hud-amount" class="hud-amount"></span>
-            <span id="hud-words" class="hud-words"></span>
-            <span id="hud-alt" class="hud-alt"></span>
-            <span id="hud-you" class="hud-you"></span>
           </summary>
 
           <form id="amount-form" class="amount-form" autocomplete="off">
@@ -27,6 +25,22 @@
             <p id="amount-preview" class="amount-preview" aria-live="polite"></p>
           </form>
 
+          <section>
+            <h2>Mapa del museo</h2>
+            <nav id="presets" class="presets" aria-label="Salas del museo"></nav>
+          </section>
+        </details>
+      </aside>
+
+      <aside class="panel panel-info">
+        <details id="info-details" open>
+          <summary>
+            <span id="hud-amount" class="hud-amount"></span>
+            <span id="hud-words" class="hud-words"></span>
+            <span id="hud-alt" class="hud-alt"></span>
+            <span id="hud-you" class="hud-you"></span>
+          </summary>
+
           <form id="income-form" class="amount-form" autocomplete="off">
             <label for="income-input">¿Cuánto tiempo necesitarías tú? Tu ingreso mensual</label>
             <div class="amount-row">
@@ -35,11 +49,6 @@
             </div>
             <p id="income-status" class="amount-preview" aria-live="polite"></p>
           </form>
-
-          <section>
-            <h2>Mapa del museo</h2>
-            <nav id="presets" class="presets" aria-label="Salas del museo"></nav>
-          </section>
 
           <section id="hud-details" class="hud-details"></section>
         </details>

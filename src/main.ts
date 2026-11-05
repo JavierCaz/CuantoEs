@@ -24,7 +24,16 @@ const overlay = $('overlay');
 const hint = $('hint');
 const debug = $('debug');
 const fade = $('fade');
-const panelDetails = $<HTMLDetailsElement>('panel-details');
+const menuDetails = $<HTMLDetailsElement>('menu-details');
+const infoDetails = $<HTMLDetailsElement>('info-details');
+// On a narrow screen the two panels share the top: opening one closes the other.
+const narrow = window.matchMedia('(max-width: 760px)');
+for (const [panel, other] of [[menuDetails, infoDetails], [infoDetails, menuDetails]]) {
+  panel.addEventListener('toggle', () => {
+    if (panel.open && narrow.matches) other.open = false;
+  });
+}
+if (narrow.matches) infoDetails.open = false; // the menu first
 const aerialButton = $<HTMLButtonElement>('aerial');
 const musicButton = $<HTMLButtonElement>('music');
 const isTouch = window.matchMedia('(pointer: coarse)').matches;
@@ -84,11 +93,11 @@ function renderInfo(index: number) {
   }
 }
 
-// What the panel highlights and the URL says: the exhibit on show, or the space.
+// What the panel highlights (the space you're in) and the URL says (the exhibit on show, or the space).
 function showWhere(index: number) {
   const space = complex.spaces[index];
   const preset = museum!.presetAt(index);
-  presetPanel.setActive(preset?.id ?? space.id);
+  presetPanel.setActive(space.id);
   // Keep the URL shareable without adding a history entry per change.
   const params = new URLSearchParams();
   if (preset) params.set('preset', preset.id);
@@ -214,7 +223,9 @@ document.addEventListener('keydown', (e) => {
 $('enter').addEventListener('click', () => music.play());
 
 if (isTouch) {
-  panelDetails.open = false; // on phones the panel starts collapsed to its summary
+  // On phones both panels start collapsed to their summaries.
+  menuDetails.open = false;
+  infoDetails.open = false;
   new TouchControls(player, canvas);
   $('enter').addEventListener('click', () => overlay.classList.add('hidden'));
 } else {

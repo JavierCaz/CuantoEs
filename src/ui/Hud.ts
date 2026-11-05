@@ -126,7 +126,7 @@ export function renderSpaceHud(el: HudElements, space: Space) {
     case 'reflexion':
       el.words.textContent = 'Fin del recorrido';
       parts.push(
-        '<p>Vuelve a cualquier sala desde el menú, escribe un monto para abrir la Sala temporal, o tu ingreso mensual para medir cada cifra en tiempo de trabajo.</p>',
+        '<p>Vuelve a cualquier sala desde el menú o escribe un monto para abrir la Sala temporal. Arriba, en este panel, escribe tu ingreso mensual para medir cada cifra en tiempo de trabajo.</p>',
         `<h3>Fuentes</h3><ul class="sources">${PRESETS.map((p) => `<li>${escape(p.titulo)}: ${sourceLink(p)}${p.año ? ` (${p.año})` : ''}</li>`).join('')}</ul>`,
       );
       break;
