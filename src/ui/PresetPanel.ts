@@ -1,8 +1,8 @@
 import { shortAmount } from '../i18n/format';
-import { ROOMS, SALAS } from '../museum/collection';
+import { GROUPED_ROOMS, ROOMS, SALAS } from '../museum/collection';
 
-// The museum map in the side panel: the spaces of the tour, then each sala with its halls,
-// in walking order. Selecting one takes you there.
+// The museum map in the side panel: the spaces of the tour, then each sala with its halls and
+// their exhibits, in walking order. Selecting an exhibit takes you to its hall and puts it on show.
 const SPACES: [string, string][] = [
   ['plaza', 'Plaza de acceso'],
   ['vestibulo', 'Vestíbulo'],
@@ -50,7 +50,14 @@ export function mountPresetPanel(container: HTMLElement, onSelect: (id: string) 
   for (const [id, title] of SPACES) container.append(button(id, title));
   SALAS.forEach((sala, n) => {
     group(`Sala ${n + 1} · ${sala.nombre}`, sala.escala);
-    for (const room of ROOMS.filter((r) => r.sala === sala.id)) container.append(button(room.id, room.titulo, undefined, shortAmount(room.monto)));
+    for (const { grupo, rooms } of GROUPED_ROOMS.filter((g) => g.grupo.sala === sala.id)) {
+      if (rooms.length > 1) {
+        const h = document.createElement('h4');
+        h.textContent = grupo.nombre;
+        container.append(h);
+      }
+      for (const room of rooms.map((i) => ROOMS[i])) container.append(button(room.id, room.titulo, undefined, shortAmount(room.monto)));
+    }
   });
   group('Cierre');
   container.append(button('reflexion', 'Patio de reflexión', 'Fuentes y salida'));

@@ -4,7 +4,8 @@ import { DEFAULT_BILL } from '../src/money/denominations';
 import { computeLayout, type Rect } from '../src/money/layout';
 import { WALKWAY, footprintRect, type Point } from '../src/museum/referenceLayout';
 import { NAVE, ROOMS, planRoom, scaleOf } from '../src/museum/rooms';
-import { PASSAGE, RULER, RULER_AMOUNTS, planComplex, spaceIndexAt, type Complex } from '../src/museum/complex';
+import { CEDULA, GATE_AHEAD, cedulaSides, PAD_SIZE, PASSAGE, RULER, RULER_AMOUNTS, padAt, planComplex, spaceIndexAt, type Complex } from '../src/museum/complex';
+import { GROUPED_ROOMS } from '../src/museum/collection';
 import { BILLS_PER, UNIT_KINDS } from '../src/money/layout';
 import { REFERENCES, TEMPORAL_REFERENCES, type ReferenceId } from '../src/scene/references';
 
@@ -92,7 +93,79 @@ describe('the complex', () => {
     expect(kinds.slice(0, 3)).toEqual(['plaza', 'vestibulo', 'patio']);
     expect(kinds.at(-1)).toBe('reflexion');
     expect(kinds.filter((k) => k === 'patio')).toHaveLength(4);
-    expect(spaces.filter((s) => s.kind === 'sala').map((s) => s.id)).toEqual(ROOMS.map((r) => r.id));
+    const halls = spaces.filter((s) => s.kind === 'sala');
+    expect(halls.map((s) => s.id)).toEqual(GROUPED_ROOMS.map((g) => g.grupo.id));
+    expect(halls.map((s) => s.rooms)).toEqual(GROUPED_ROOMS.map((g) => g.rooms));
+    for (const h of halls) h.exhibits.forEach((e, i) => expect(Math.abs(e.layout.amount - ROOMS[h.rooms![i]].monto)).toBeLessThan(500));
+  });
+
+  // Each hall is sized for the biggest of its exhibits, and every one of them fits in it.
+  it.each(rooms)('%s: fits in its group hall, starting at the same entrance', (_, index) => {
+    const space = spaces.find((s) => s.rooms?.includes(index))!;
+    const { plan } = hall(index);
+    const dz = space.origin.z;
+    expect(plan.content.minX).toBeGreaterThan(space.area.minX);
+    expect(plan.content.maxX).toBeLessThan(space.area.maxX);
+    expect(plan.content.minZ + dz).toBeGreaterThan(space.area.minZ);
+    expect(plan.spawn.z + dz).toBeCloseTo(space.spawn.z);
+    expect(space.wallHeight).toBeGreaterThan(plan.height); // roofed or open, the walls stand over what's inside
+  });
+
+  it('lays a pad per exhibit at the entrance of the halls that show several', () => {
+    for (const space of spaces.filter((s) => s.kind === 'sala')) {
+      const pads = space.pads ?? [];
+      if (space.rooms!.length === 1) {
+        expect(pads).toHaveLength(0);
+        continue;
+      }
+      expect(pads.map((p) => p.exhibit)).toEqual(space.rooms!.map((_, i) => i));
+      const solids = space.rooms!.flatMap((i) =>
+        hall(i).solids.map((r) => ({ ...r, minZ: r.minZ + space.origin.z, maxZ: r.maxZ + space.origin.z })),
+      );
+      const xs = pads.map((p) => p.rect.minX);
+      expect(xs).toEqual([...xs].sort((a, b) => a - b)); // smallest on the left
+      for (const pad of pads) {
+        const r = pad.rect;
+        expect(r.maxX - r.minX).toBeCloseTo(PAD_SIZE);
+        // Off the walkway, so walking down the axis never changes the exhibit.
+        expect(r.minX >= WALKWAY / 2 + RADIUS || r.maxX <= -(WALKWAY / 2 + RADIUS)).toBe(true);
+        expect(r.minX).toBeGreaterThan(space.area.minX + 1);
+        expect(r.maxX).toBeLessThan(space.area.maxX - 1);
+        expect(r.minZ).toBeGreaterThan(space.origin.z); // in front of every exhibit
+        expect(r.maxZ).toBeLessThan(space.spawn.z - RADIUS); // you don't start on one
+        for (const solid of solids) expect(overlaps(r, solid)).toBe(false);
+        const center = { x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 };
+        expect(padAt(space, center)).toBe(pad);
+      }
+      expect(padAt(space, space.spawn)).toBeNull();
+    }
+  });
+
+  // From a pad you look toward the exhibit: the cédula has to be there, not behind you.
+  it("stands each hall's cédulas ahead of its pads, one per side of the row, clear of everything", () => {
+    for (const space of spaces.filter((s) => s.kind === 'sala')) {
+      const sides = cedulaSides(space);
+      expect(sides).toHaveLength(space.pads?.length ? 2 : 1);
+      const z = space.spawn.z - GATE_AHEAD;
+      // What Signs.post blocks for a plate facing { x: ±turn, z: 1 }, plus a margin.
+      const half = CEDULA.width / 2 + CEDULA.turn * 0.15 + 0.3;
+      const halfZ = CEDULA.turn * (CEDULA.width / 2) + 0.15 + 0.3;
+      for (const side of sides) {
+        const x = side * CEDULA.x;
+        const cedula = { minX: x - half, maxX: x + half, minZ: z - halfZ, maxZ: z + halfZ };
+        expect(Math.min(Math.abs(cedula.minX), Math.abs(cedula.maxX))).toBeGreaterThan(WALKWAY / 2 + RADIUS);
+        expect(cedula.minX).toBeGreaterThan(space.area.minX + 0.5);
+        expect(cedula.maxX).toBeLessThan(space.area.maxX - 0.5);
+        expect(cedula.minZ).toBeGreaterThan(space.origin.z); // in front of every exhibit
+        for (const pad of space.pads ?? []) {
+          expect(cedula.maxZ).toBeLessThan(pad.rect.minZ); // further in than the pads
+          if (Math.sign(pad.rect.minX) === side) expect(Math.abs(x - (pad.rect.minX + pad.rect.maxX) / 2)).toBeLessThan(2.5); // ahead of its half
+        }
+        for (const i of space.rooms!) {
+          for (const r of hall(i).solids) expect(overlaps(cedula, { ...r, minZ: r.minZ + space.origin.z, maxZ: r.maxZ + space.origin.z })).toBe(false);
+        }
+      }
+    }
   });
 
   it('lines the spaces up along -Z, a passage apart, each open to the next', () => {
@@ -150,11 +223,12 @@ describe('the complex', () => {
     });
   });
 
-  // Everything the scene makes solid that the plan knows about: walls, money and references.
-  function collider(c: Complex) {
+  // Everything the scene makes solid that the plan knows about: walls, money and references,
+  // with the `pick`-th exhibit on show in every hall (or its last, if it has fewer).
+  function collider(c: Complex, pick = 0) {
     const rects = [...c.walls];
     for (const s of c.spaces) {
-      for (const e of s.exhibits) {
+      for (const e of s.exhibits.slice(Math.min(pick, s.exhibits.length - 1)).slice(0, 1)) {
         const shift = (r: Rect) => ({ minX: r.minX + e.origin.x, maxX: r.maxX + e.origin.x, minZ: r.minZ + e.origin.z, maxZ: r.maxZ + e.origin.z });
         for (const p of e.layout.placements.tarima.concat(e.layout.placements.bloque)) {
           const size = e.layout.placements.tarima.includes(p) ? e.layout.sizes.tarima : e.layout.sizes.bloque;
@@ -167,8 +241,8 @@ describe('the complex', () => {
     return new Collider(rects);
   }
 
-  it('lets you walk the whole axis, plaza to the end, without bumping into anything', () => {
-    const c = collider(complex);
+  it.each([0, 1, 2, 3])('lets you walk the whole axis without bumping into anything, exhibit %i on show', (pick) => {
+    const c = collider(complex, pick);
     const end = spaces.at(-1)!.area.minZ + 1;
     for (let z = spaces[0].spawn.z; z > end; z -= 0.25) expect(c.hits(0, z, RADIUS)).toBe(false);
   });

@@ -36,17 +36,34 @@ export interface RoomPlan {
   path: Point[]; // walking route on the floor, from the entrance to the exit
 }
 
+export interface HallMember {
+  money: { bounds: Rect; height: number; references: Point[] };
+  footprints: Footprint[];
+}
+
 // The hall hugs the exhibit (see computeLayout): the walkway through it is the route.
 // Personal amounts get a room at human scale; public ones get the height of the Gran Nave, or,
 // open to the sky, walls high enough to frame what's inside.
-export function planRoom(
-  money: { bounds: Rect; height: number; references: Point[] },
-  footprints: Footprint[],
-  scale: Scale,
-): RoomPlan {
-  const { references } = money;
-  const content = references.reduce((r, p, i) => union(r, footprintRect(p, footprints[i])), money.bounds);
-  const height = Math.max(money.height, ...footprints.map((f) => f.h));
+export function planRoom(money: HallMember['money'], footprints: Footprint[], scale: Scale): RoomPlan {
+  return planHall([{ money, footprints }], scale);
+}
+
+// A hall shared by several exhibits, one on show at a time: big enough for the biggest of them.
+// Every exhibit starts at z = 0, so they all share the entrance, the spawn and the walkway.
+// `references` are the first member's; each member keeps its own (see contentOf).
+export function planHall(members: HallMember[], scale: Scale): RoomPlan {
+  const parts = members.map(contentOf);
+  const content = parts.map((p) => p.content).reduce(union);
+  const height = Math.max(...parts.map((p) => p.height));
+  return planArea(content, height, members[0].money.references, scale);
+}
+
+export function contentOf({ money, footprints }: HallMember): { content: Rect; height: number } {
+  const content = money.references.reduce((r, p, i) => union(r, footprintRect(p, footprints[i])), money.bounds);
+  return { content, height: Math.max(money.height, ...footprints.map((f) => f.h)) };
+}
+
+function planArea(content: Rect, height: number, references: Point[], scale: Scale): RoomPlan {
 
   const width = Math.max(MIN_WIDTH, content.maxX - content.minX + SIDE_MARGIN * 2);
   const depth = Math.max(MIN_DEPTH, content.maxZ - content.minZ + FRONT_MARGIN + BACK_MARGIN);

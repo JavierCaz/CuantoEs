@@ -7,15 +7,14 @@ import { AerialView } from './scene/AerialView';
 import { Player } from './controls/Player';
 import { DesktopControls } from './controls/DesktopControls';
 import { TouchControls } from './controls/TouchControls';
-import { Collider } from './controls/collision';
 import { formatNumber, parseAmount } from './i18n/format';
 import { MAX_AMOUNT, mountAmountInput } from './ui/AmountInput';
 import { mountIncomeInput } from './ui/IncomeInput';
 import { mountPresetPanel } from './ui/PresetPanel';
 import { renderHud, renderSpaceHud } from './ui/Hud';
 import { Soundtrack } from './audio/Soundtrack';
-import { ROOMS } from './museum/collection';
-import { planComplex, spaceIndexAt, type Complex, type Space } from './museum/complex';
+import { ROOMS, grupoOf } from './museum/collection';
+import { planComplex, spaceIndexAt, type Complex } from './museum/complex';
 
 const FADE_MS = 160; // matches the .fade transition in style.css
 
@@ -44,6 +43,8 @@ let museum: Museum | null = null;
 let temporal: number | null = null; // the amount on show in the Sala temporal, if any
 let current = -1; // index of the space you're in
 let income: number | null = null;
+const choices: Record<string, string> = {}; // the exhibit each group's hall shows: group id → preset id
+let lastPad: number | null = null; // the pad you were standing on last frame, so each step counts once
 
 // The whole museum is built at once; typing an amount rebuilds it with a Sala temporal at the end.
 function build() {
@@ -52,9 +53,9 @@ function build() {
     footprint: (id) => REFERENCES[id as ReferenceId].footprint,
     temporal: temporal === null ? undefined : { amount: temporal, references: TEMPORAL_REFERENCES },
   });
-  museum = new Museum(complex, { anisotropy: world.maxAnisotropy, reducedMotion });
+  museum = new Museum(complex, { anisotropy: world.maxAnisotropy, reducedMotion, choices });
   world.scene.add(museum.group);
-  player.collider = new Collider(museum.rects);
+  player.collider = museum.collider;
   player.setBounds(complex.bounds);
   current = -1;
 }
@@ -65,21 +66,49 @@ const presetPanel = mountPresetPanel($('presets'), (id) => travel(id));
 const hud = { amount: $('hud-amount'), words: $('hud-words'), alt: $('hud-alt'), you: $('hud-you'), details: $('hud-details') };
 
 // The music follows the amount; the spaces between halls keep the mood of what's around them.
-function moodAmount(space: Space): number {
-  if (space.kind === 'sala' || space.kind === 'temporal') return space.exhibits[0].layout.amount;
+function moodAmount(index: number): number {
+  const space = complex.spaces[index];
+  if (space.kind === 'sala' || space.kind === 'temporal') return museum!.layoutAt(index)!.amount;
   if (space.kind === 'patio') return ROOMS.find((r) => r.sala === space.sala)!.monto;
   if (space.kind === 'reflexion') return 1e13;
   return 1e5;
 }
 
-function renderInfo(space: Space) {
+function renderInfo(index: number) {
+  const space = complex.spaces[index];
   if (space.kind === 'sala' || space.kind === 'temporal') {
-    const { layout } = space.exhibits[0];
-    const preset = space.room !== undefined ? ROOMS[space.room] : undefined;
-    renderHud(hud, layout, preset?.monto ?? temporal!, preset, income);
+    const preset = museum!.presetAt(index);
+    renderHud(hud, museum!.layoutAt(index)!, preset?.monto ?? temporal!, preset, income);
   } else {
     renderSpaceHud(hud, space);
   }
+}
+
+// What the panel highlights and the URL says: the exhibit on show, or the space.
+function showWhere(index: number) {
+  const space = complex.spaces[index];
+  const preset = museum!.presetAt(index);
+  presetPanel.setActive(preset?.id ?? space.id);
+  // Keep the URL shareable without adding a history entry per change.
+  const params = new URLSearchParams();
+  if (preset) params.set('preset', preset.id);
+  else if (space.kind === 'temporal') params.set('monto', String(temporal));
+  else params.set('espacio', space.id);
+  history.replaceState(null, '', `?${params}`);
+}
+
+// Put an exhibit on show in its group's hall, by preset id. False if it already was.
+function choose(presetId: string): boolean {
+  const index = complex.spaces.findIndex((s) => s.rooms?.some((i) => ROOMS[i].id === presetId));
+  if (index < 0) return false;
+  choices[grupoOf(ROOMS.find((r) => r.id === presetId)!).id] = presetId;
+  const changed = museum!.select(index, complex.spaces[index].rooms!.findIndex((i) => ROOMS[i].id === presetId));
+  if (changed && index === current) {
+    music.setAmount(moodAmount(index));
+    renderInfo(index);
+    showWhere(index);
+  }
+  return changed;
 }
 
 // Called whenever you step into a different space, walking or by teleport.
@@ -92,19 +121,18 @@ function enterSpace(index: number) {
   const fog = world.scene.fog as THREE.Fog;
   fog.far = Math.max(140, Math.hypot(space.area.maxX - space.area.minX, space.area.maxZ - space.area.minZ) * 2);
 
-  music.setAmount(moodAmount(space));
-  renderInfo(space);
-  presetPanel.setActive(space.id);
-
-  // Keep the URL shareable without adding a history entry per change.
-  const params = new URLSearchParams();
-  if (space.room !== undefined) params.set('preset', space.id);
-  else if (space.kind === 'temporal') params.set('monto', String(temporal));
-  else params.set('espacio', space.id);
-  history.replaceState(null, '', `?${params}`);
+  music.setAmount(moodAmount(index));
+  renderInfo(index);
+  showWhere(index);
 }
 
-// Teleport: fade to the walls' color, move, fade back.
+// The space an id names: a space's own, or a preset's, whose group's hall shows it.
+function spaceOf(id: string): number {
+  const index = complex.spaces.findIndex((s) => s.id === id || s.rooms?.some((i) => ROOMS[i].id === id));
+  return Math.max(0, index);
+}
+
+// Teleport: fade to the walls' color, move, fade back. To a preset, it's put on show there.
 let transitioning = false;
 function travel(id: string, before?: () => void) {
   if (transitioning) return;
@@ -112,11 +140,13 @@ function travel(id: string, before?: () => void) {
   fade.classList.add('on');
   setTimeout(() => {
     before?.();
-    const index = Math.max(0, complex.spaces.findIndex((s) => s.id === id));
+    choose(id);
+    const index = spaceOf(id);
     const { spawn } = complex.spaces[index];
     player.spawn(spawn.x, spawn.z);
     if (aerial.isWalking) player.applyTo(world.camera);
     enterSpace(index);
+    lastPad = null;
     fade.classList.remove('on');
     transitioning = false;
   }, FADE_MS);
@@ -131,7 +161,7 @@ mountAmountInput($('amount-form'), $('amount-input'), $('amount-preview'), (amou
 
 income = mountIncomeInput($('income-form'), $('income-input'), $('income-status'), (monthly) => {
   income = monthly;
-  if (current >= 0) renderInfo(complex.spaces[current]);
+  if (current >= 0) renderInfo(current);
 });
 
 function startFromUrl(): string {
@@ -147,8 +177,9 @@ function startFromUrl(): string {
 }
 
 const start = startFromUrl();
+if (ROOMS.some((r) => r.id === start)) choices[grupoOf(ROOMS.find((r) => r.id === start)!).id] = start;
 build();
-const startIndex = Math.max(0, complex.spaces.findIndex((s) => s.id === start));
+const startIndex = spaceOf(start);
 player.spawn(complex.spaces[startIndex].spawn.x, complex.spaces[startIndex].spawn.z);
 player.applyTo(world.camera);
 enterSpace(startIndex);
@@ -214,6 +245,10 @@ world.onUpdate((dt) => {
     player.applyTo(world.camera);
     const index = spaceIndexAt(complex.spaces, player.position);
     if (!transitioning && index !== current) enterSpace(index);
+    // Stepping onto a pad puts its exhibit on show; standing on it doesn't keep re-choosing.
+    const pad = transitioning ? null : museum!.padAt(current, player.position);
+    if (pad !== null && pad !== lastPad) choose(ROOMS[complex.spaces[current].rooms![pad]].id);
+    lastPad = pad;
   } else {
     aerial.update(dt, player.position, player.quaternion);
   }

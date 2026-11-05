@@ -11,11 +11,26 @@ export class Collider {
     rects: Rect[],
     private cellSize = 4,
   ) {
+    this.add(rects);
+  }
+
+  add(rects: Rect[]) {
     for (const r of rects) {
       this.forEachCell(r.minX, r.maxX, r.minZ, r.maxZ, (key) => {
         let list = this.cells.get(key);
         if (!list) this.cells.set(key, (list = []));
         list.push(r);
+      });
+    }
+  }
+
+  // Takes out exactly the rects given (by identity), e.g. the money of an exhibit no longer on show.
+  remove(rects: Rect[]) {
+    const gone = new Set(rects);
+    for (const r of rects) {
+      this.forEachCell(r.minX, r.maxX, r.minZ, r.maxZ, (key) => {
+        const list = this.cells.get(key);
+        if (list) this.cells.set(key, list.filter((x) => !gone.has(x)));
       });
     }
   }

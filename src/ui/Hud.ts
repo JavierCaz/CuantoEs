@@ -1,7 +1,7 @@
 import { alternateReading, countWithNoun, formatMXN, formatNumber } from '../i18n/format';
 import { compare } from '../money/comparisons';
 import { UNIT_KINDS, type Layout, type UnitKind } from '../money/layout';
-import { PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, salaOf, timeToEarn, type Preset } from '../museum/collection';
+import { GROUPED_ROOMS, PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, grupoOf, salaOf, timeToEarn, type Preset } from '../museum/collection';
 import type { Space } from '../museum/complex';
 
 const UNIT_LABELS: Record<UnitKind, [string, string, string]> = {
@@ -39,9 +39,14 @@ export function renderHud(el: HudElements, layout: Layout, requested: number, pr
 
   if (preset) {
     const sala = salaOf(preset);
+    const grupo = grupoOf(preset);
+    const members = grupo.presets.length;
+    const position = ROOMS.filter((r) => grupoOf(r) === grupo).indexOf(preset) + 1;
+    const where = members > 1 ? `<p class="note">${escape(grupo.nombre)} · ${position} de ${members} · pisa otra losa para cambiar</p>` : '';
     const consulted = preset.consulta ? ` · consultada el ${new Date(preset.consulta + 'T12:00').toLocaleDateString('es-MX', { dateStyle: 'long' })}` : '';
     parts.push(
       `<p class="note">Sala ${SALAS.indexOf(sala) + 1} · ${sala.nombre} · ${sala.escala}</p>` +
+        where +
         `<h3>${escape(preset.titulo)}</h3>` +
         `<p class="question">${escape(preset.pregunta)}</p>` +
         `<p>${escape(preset.descripcion)}</p>` +
@@ -111,8 +116,11 @@ export function renderSpaceHud(el: HudElements, space: Space) {
     case 'patio': {
       const sala = SALAS.find((s) => s.id === space.sala)!;
       el.words.textContent = sala.escala;
-      const rooms = ROOMS.filter((r) => r.sala === sala.id);
-      parts.push(`<p>${sala.descripcion}</p><ul>${rooms.map((r) => `<li>${escape(r.titulo)}</li>`).join('')}</ul>`);
+      const halls = GROUPED_ROOMS.filter((g) => g.grupo.sala === sala.id).map(
+        ({ grupo, rooms }) =>
+          `<li><strong>${escape(grupo.nombre)}</strong>${rooms.length > 1 ? `: ${rooms.map((i) => escape(ROOMS[i].titulo)).join(' · ')}` : ''}</li>`,
+      );
+      parts.push(`<p>${sala.descripcion}</p><ul>${halls.join('')}</ul>`);
       break;
     }
     case 'reflexion':

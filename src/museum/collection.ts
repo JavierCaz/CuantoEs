@@ -69,11 +69,51 @@ export function salaOf(preset: Preset): Sala {
   return SALAS.find((s) => s.id === preset.sala)!;
 }
 
-// Walking order: sala by sala, from the personal to the social; within each, smallest to biggest,
-// so every sala builds its own intuition before the next one.
-export const ROOMS: Preset[] = SALAS.flatMap((sala) =>
-  PRESETS.filter((p) => p.sala === sala.id).sort((a, b) => a.monto - b.monto),
+// Related exhibits share one hall: you step on a floor pad to choose which one it shows, so the
+// tour doesn't have to walk past a separate hall for each of them. In walking order within each sala.
+export const GRUPOS = [
+  {
+    id: 'hogar',
+    sala: 'tu-dinero',
+    nombre: 'Ingresos y gastos del hogar',
+    presets: ['salario-minimo-anual', 'canasta-alimentaria', 'ingreso-hogar-promedio', 'vivienda-promedio'],
+  },
+  { id: 'transporte', sala: 'tu-ciudad', nombre: 'Transporte', presets: ['km-tren-interurbano', 'tren-interurbano'] },
+  { id: 'presupuestos-ciudad', sala: 'tu-ciudad', nombre: 'Presupuestos de ciudades', presets: ['monterrey-2026', 'cdmx-2026'] },
+  { id: 'gobierno', sala: 'tu-pais', nombre: 'Gobierno y elecciones', presets: ['ine-2026', 'dia-de-gobierno'] },
+  { id: 'megaproyectos', sala: 'tu-pais', nombre: 'Megaproyectos', presets: ['aifa', 'refineria-olmeca', 'tren-maya'] },
+  {
+    id: 'rubros',
+    sala: 'tu-pais',
+    nombre: 'Gasto por rubro',
+    presets: ['seguridad-2026', 'salud-2026', 'educacion-2026', 'deuda-2026'],
+  },
+  { id: 'pef', sala: 'tu-pais', nombre: 'Presupuesto federal', presets: ['pef-2026'] },
+  { id: 'extremos', sala: 'las-diferencias', nombre: 'Los extremos del ingreso', presets: ['ingreso-decil-i', 'ingreso-decil-x'] },
+  { id: 'fortunas', sala: 'las-diferencias', nombre: 'Una vida contra una fortuna', presets: ['vida-salario-minimo', 'fortuna-slim'] },
+] as const satisfies readonly { id: string; sala: SalaId; nombre: string; presets: readonly string[] }[];
+
+export type Grupo = (typeof GRUPOS)[number];
+
+const byAmount = (a: Preset, b: Preset) => a.monto - b.monto;
+const membersOf = (grupo: Grupo): Preset[] =>
+  grupo.presets.map((id) => PRESETS.find((p) => p.id === id)!).filter(Boolean).sort(byAmount);
+
+// Walking order: sala by sala, from the personal to the social; within each, group by group, and
+// within each group smallest to biggest, so every sala builds its own intuition before the next one.
+export const ROOMS: Preset[] = SALAS.flatMap((sala) => GRUPOS.filter((g) => g.sala === sala.id).flatMap(membersOf));
+
+// Each group with its exhibits as indices into ROOMS, in walking order.
+export const GROUPED_ROOMS: { grupo: Grupo; rooms: number[] }[] = SALAS.flatMap((sala) =>
+  GRUPOS.filter((g) => g.sala === sala.id).map((grupo) => ({
+    grupo,
+    rooms: membersOf(grupo).map((p) => ROOMS.indexOf(p)),
+  })),
 );
+
+export function grupoOf(preset: Preset): Grupo {
+  return GRUPOS.find((g) => (g.presets as readonly string[]).includes(preset.id))!;
+}
 
 export function roomIndex(id: string | null): number {
   return ROOMS.findIndex((r) => r.id === id);

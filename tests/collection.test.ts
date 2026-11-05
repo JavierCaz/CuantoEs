@@ -1,19 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, ratioText, timeToEarn } from '../src/museum/collection';
+import { GROUPED_ROOMS, GRUPOS, PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, grupoOf, ratioText, timeToEarn } from '../src/museum/collection';
 import { REFERENCES, TEMPORAL_REFERENCES } from '../src/scene/references';
 
 const byId = (id: string) => PRESETS.find((p) => p.id === id)!;
 
 describe('the collection', () => {
-  it('walks sala by sala, smallest to biggest within each', () => {
+  it('walks sala by sala, group by group, smallest to biggest within each group', () => {
     const salas = ROOMS.map((r) => SALAS.findIndex((s) => s.id === r.sala));
     expect(salas).toEqual([...salas].sort((a, b) => a - b));
-    for (const sala of SALAS) {
-      const amounts = ROOMS.filter((r) => r.sala === sala.id).map((r) => r.monto);
-      expect(amounts.length).toBeGreaterThan(0);
+    expect(ROOMS).toHaveLength(PRESETS.length);
+    expect(GROUPED_ROOMS.flatMap((g) => g.rooms)).toEqual(ROOMS.map((_, i) => i));
+    for (const { rooms } of GROUPED_ROOMS) {
+      const amounts = rooms.map((i) => ROOMS[i].monto);
       expect(amounts).toEqual([...amounts].sort((a, b) => a - b));
     }
-    expect(ROOMS).toHaveLength(PRESETS.length);
+    for (const sala of SALAS) expect(GRUPOS.some((g) => g.sala === sala.id)).toBe(true);
+  });
+
+  it('puts every exhibit in exactly one group, in its own sala', () => {
+    const ids = GRUPOS.flatMap((g) => [...g.presets]);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect([...ids].sort()).toEqual(PRESETS.map((p) => p.id).sort());
+    expect(new Set(GRUPOS.map((g) => g.id)).size).toBe(GRUPOS.length);
+    for (const p of PRESETS) expect(grupoOf(p).sala).toBe(p.sala);
+    // Group ids name halls, preset ids name exhibits: the URL and the panel tell them apart.
+    for (const g of GRUPOS) expect(PRESETS.map((p) => p.id)).not.toContain(g.id);
   });
 
   it.each(PRESETS.map((p) => [p.id, p] as const))('%s: says what kind of figure it is and where it comes from', (_, p) => {

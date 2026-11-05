@@ -86,6 +86,15 @@ export class Signs {
     return height;
   }
 
+  // A plate lying on the floor, the middle of its top edge at `at`, that edge toward -Z: read as you walk toward -Z.
+  floor(at: Point, width: number, lines: Line[], options?: PlateOptions) {
+    const { object, height } = plate(lines, width, options);
+    object.rotation.x = -Math.PI / 2;
+    object.position.set(at.x, 0.025, at.z + height / 2);
+    this.group.add(object);
+    return height;
+  }
+
   // Chevrons painted along the route, all in one draw call: one geometry, one instance per arrow.
   arrows(path: Point[]) {
     if (path.length < 2) return;

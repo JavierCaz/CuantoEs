@@ -278,6 +278,13 @@ body.locked .panel {
   margin-top: 0;
 }
 
+.presets h4 {
+  margin: 6px 0 0 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .preset-scale {
   font-weight: 400;
   letter-spacing: normal;

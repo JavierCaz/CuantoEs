@@ -66,7 +66,8 @@ describe('placeReferences', () => {
     const biggest = (ids: string[]) =>
       Math.max(...ids.map((id) => REFERENCES[id as ReferenceId].footprint).map((f) => f.w * f.d));
     for (const sala of new Set(ROOMS.map((r) => r.sala))) {
-      const sizes = ROOMS.filter((r) => r.sala === sala).map((r) => biggest(r.referencias));
+      const byAmount = ROOMS.filter((r) => r.sala === sala).sort((a, b) => a.monto - b.monto);
+      const sizes = byAmount.map((r) => biggest(r.referencias));
       expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
     }
   });

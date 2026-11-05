@@ -1,14 +1,17 @@
 import { DEFAULT_BILL } from '../money/denominations';
 import { BILLS_PER, UNIT_KINDS, computeLayout, union, unitSizes, type Layout, type Placement, type Rect, type UnitKind } from '../money/layout';
 import { formatNumber } from '../i18n/format';
-import { SALAS, ROOMS, type SalaId } from './collection';
+import { SALAS, ROOMS, GROUPED_ROOMS, type SalaId } from './collection';
 import { footprintRect, type Footprint, type Point } from './referenceLayout';
-import { OPENING, WALL_THICKNESS, planRoom, scaleOf, type RoomPlan, type Scale } from './rooms';
+import { OPENING, WALL_THICKNESS, planHall, scaleOf, type RoomPlan, type Scale } from './rooms';
 
 // The whole museum on one processional axis (x = 0), walked toward -Z, like a calzada:
 //
 //   Plaza de acceso → Vestíbulo (how to read the museum: a ruler from one bill to a tarima)
 //     → patio · Sala 1 Tu dinero → its halls → patio · Sala 2 Tu ciudad → …
+//
+// Each hall belongs to a group of related exhibits (see GRUPOS) and shows one of them at a time:
+// floor pads at its entrance choose which.
 //     → Patio de reflexión (→ Sala temporal, when you type an amount)
 //
 // Every space opens onto the next through a deep portal on the axis, so from one space you see
@@ -37,9 +40,17 @@ export interface Space {
   path: Point[]; // walking route, front opening → back opening
   exhibits: Exhibit[];
   sala?: SalaId; // halls and the patio that introduces their sala
-  room?: number; // index into ROOMS
-  plan?: RoomPlan; // halls: the local plan, before shifting by `origin`
+  grupo?: string; // halls: the group of exhibits they show
+  rooms?: number[]; // halls: indices into ROOMS, one per exhibit, in the same order
+  plan?: RoomPlan; // halls: the local plan, before shifting by `origin`, sized for the biggest exhibit
+  pads?: Pad[]; // halls with more than one exhibit: step on one to choose what's on show
   origin: Point;
+}
+
+// A slab on the floor at a hall's entrance; standing on it puts `exhibit` on show.
+export interface Pad {
+  rect: Rect;
+  exhibit: number; // index into the space's exhibits (and rooms)
 }
 
 export interface Portal {
@@ -85,32 +96,32 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
   SALAS.forEach((sala, n) => {
     // Each sala opens with a patio: a breath of open air before a new scale.
     local({ ...empty('patio', `patio-${sala.id}`, `Sala ${n + 1} · ${sala.nombre}`, 22, 20, 8, 'abierto'), sala: sala.id });
-    ROOMS.forEach((preset, index) => {
-      if (preset.sala !== sala.id) return;
-      local(hall(preset.id, preset.titulo, preset.monto, preset.referencias, scaleOf(preset.monto), {
-        sala: sala.id,
-        room: index,
-      }));
-    });
+    for (const { grupo, rooms } of GROUPED_ROOMS) {
+      if (grupo.sala !== sala.id) continue;
+      const members = rooms.map((i) => ({ amount: ROOMS[i].monto, referencias: ROOMS[i].referencias }));
+      local(hall(grupo.id, grupo.nombre, members, { sala: sala.id, grupo: grupo.id, rooms }));
+    }
   });
 
   local({ ...empty('reflexion', 'reflexion', 'Patio de reflexión', 26, 26, 9, 'abierto') });
   if (temporal) {
-    local(hall('temporal', 'Sala temporal', temporal.amount, temporal.references, scaleOf(temporal.amount), {}, 'temporal'));
+    local(hall('temporal', 'Sala temporal', [{ amount: temporal.amount, referencias: temporal.references }], {}, 'temporal'));
   }
 
+  // One hall for one or more exhibits, sized for the biggest; the scale is the biggest one's too.
   function hall(
     id: string,
     title: string,
-    amount: number,
-    referencias: string[],
-    scale: Scale,
+    members: { amount: number; referencias: string[] }[],
     extra: Partial<Space>,
     kind: SpaceKind = 'sala',
   ): Omit<Space, 'front' | 'back'> {
-    const footprints = referencias.map(footprint);
-    const layout = computeLayout(amount, DEFAULT_BILL, footprints);
-    const plan = planRoom(layout, footprints, scale);
+    const built = members.map(({ amount, referencias }) => {
+      const footprints = referencias.map(footprint);
+      return { referencias, footprints, layout: computeLayout(amount, DEFAULT_BILL, footprints) };
+    });
+    const scale: Scale = scaleOf(Math.max(...members.map((m) => m.amount)));
+    const plan = planHall(built.map((b) => ({ money: b.layout, footprints: b.footprints })), scale);
     return {
       id,
       kind,
@@ -120,8 +131,13 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
       roof: plan.roofed ? 'tragaluces' : 'abierto',
       spawn: plan.spawn,
       path: plan.path,
-      exhibits: [{ layout, origin: { x: 0, z: 0 }, references: referencias.map((id, i) => ({ id, at: plan.references[i] })) }],
+      exhibits: built.map(({ layout, referencias }) => ({
+        layout,
+        origin: { x: 0, z: 0 },
+        references: referencias.map((id, i) => ({ id, at: layout.references[i] })),
+      })),
       plan,
+      pads: built.length > 1 ? pads(built.length, plan.spawn) : undefined,
       origin: { x: 0, z: 0 },
       ...extra,
     };
@@ -142,6 +158,7 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
       spawn: shift(spec.spawn),
       path: spec.path.length ? spec.path.map(shift) : [{ x: 0, z: area.maxZ }, shift(spec.spawn), { x: 0, z: area.minZ }],
       exhibits: spec.exhibits.map((e) => ({ ...e, origin: shift(e.origin), references: e.references.map((r) => ({ ...r, at: shift(r.at) })) })),
+      pads: spec.pads?.map((p) => ({ ...p, rect: { ...p.rect, minZ: p.rect.minZ + dz, maxZ: p.rect.maxZ + dz } })),
       front: i > 0 ? portal(i - 1) : null,
       back: i < specs.length - 1 ? portal(i) : null,
     });
@@ -161,6 +178,41 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
     { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity },
   );
   return { spaces, bounds, walls: wallRects(spaces) };
+}
+
+// ---------- The selector pads ----------
+
+// Ahead of the pads, facing them, so whoever steps on one sees what changed: the title gate over
+// the walkway and, beside it, the cédula that says what the figure is and where it's from. Halls
+// with pads get a cédula on each side, one ahead of each half of the row; the rest, only the right.
+export const GATE_AHEAD = 3.5; // from where you start, toward the exhibit
+export const CEDULA = { x: 3.6, width: 1.7, turn: 0.2 }; // turned a little toward the axis
+
+export function cedulaSides(space: Space): (1 | -1)[] {
+  return space.pads?.length ? [-1, 1] : [1];
+}
+
+export const PAD_SIZE = 1.4;
+const PAD_INNER = 2.6; // center of the pads nearest the axis, clear of the walkway and the title gate's poles
+const PAD_STEP = 1.9;
+const PAD_AHEAD = 1.8; // in front of where you start, between you and the title gate
+
+// A row of pads across the hall's entrance, split on either side of the walkway, the left side
+// first: smallest exhibit on the far left, biggest on the far right.
+function pads(n: number, spawn: Point): Pad[] {
+  const left = Math.ceil(n / 2);
+  const xs = [
+    ...Array.from({ length: left }, (_, k) => -(PAD_INNER + (left - 1 - k) * PAD_STEP)),
+    ...Array.from({ length: n - left }, (_, k) => PAD_INNER + k * PAD_STEP),
+  ];
+  const z = spawn.z - PAD_AHEAD;
+  const h = PAD_SIZE / 2;
+  return xs.map((x, exhibit) => ({ rect: { minX: x - h, maxX: x + h, minZ: z - h, maxZ: z + h }, exhibit }));
+}
+
+// The pad you're standing on, if any: your center has to be on it.
+export function padAt(space: Space, p: Point): Pad | null {
+  return space.pads?.find((pad) => p.x >= pad.rect.minX && p.x <= pad.rect.maxX && p.z >= pad.rect.minZ && p.z <= pad.rect.maxZ) ?? null;
 }
 
 // ---------- The vestíbulo's ruler ----------
