@@ -4,7 +4,7 @@ import { DEFAULT_BILL } from '../src/money/denominations';
 import { computeLayout, type Rect } from '../src/money/layout';
 import { WALKWAY, footprintRect, type Point } from '../src/museum/referenceLayout';
 import { NAVE, ROOMS, planRoom, scaleOf } from '../src/museum/rooms';
-import { CEDULA, GATE_AHEAD, cedulaSides, PAD_SIZE, PASSAGE, RULER, RULER_AMOUNTS, padAt, planComplex, spaceIndexAt, type Complex } from '../src/museum/complex';
+import { CEDULA, GATE_AHEAD, cedulaSide, PAD_SIZE, PASSAGE, RULER, RULER_AMOUNTS, padAt, planComplex, spaceIndexAt, type Complex } from '../src/museum/complex';
 import { GROUPED_ROOMS } from '../src/museum/collection';
 import { BILLS_PER, UNIT_KINDS } from '../src/money/layout';
 import { REFERENCES, TEMPORAL_REFERENCES, type ReferenceId } from '../src/scene/references';
@@ -142,16 +142,19 @@ describe('the complex', () => {
   });
 
   // From a pad you look toward the exhibit: the cédula has to be there, not behind you.
-  it("stands each hall's cédulas ahead of its pads, one per side of the row, clear of everything", () => {
+  it("stands each exhibit's cédula ahead of its own pad, clear of everything", () => {
     for (const space of spaces.filter((s) => s.kind === 'sala')) {
-      const sides = cedulaSides(space);
-      expect(sides).toHaveLength(space.pads?.length ? 2 : 1);
+      const sides = space.rooms!.map((_, i) => cedulaSide(space, i));
+      if (!space.pads) expect(sides).toEqual([1]);
       const z = space.spawn.z - GATE_AHEAD;
       // What Signs.post blocks for a plate facing { x: ±turn, z: 1 }, plus a margin.
       const half = CEDULA.width / 2 + CEDULA.turn * 0.15 + 0.3;
       const halfZ = CEDULA.turn * (CEDULA.width / 2) + 0.15 + 0.3;
-      for (const side of sides) {
+      for (const [exhibit, side] of sides.entries()) {
         const x = side * CEDULA.x;
+        const own = space.pads?.[exhibit];
+        // Right ahead of the pad you just stepped on.
+        if (own) expect(Math.abs(x - (own.rect.minX + own.rect.maxX) / 2)).toBeLessThan(1.5);
         const cedula = { minX: x - half, maxX: x + half, minZ: z - halfZ, maxZ: z + halfZ };
         expect(Math.min(Math.abs(cedula.minX), Math.abs(cedula.maxX))).toBeGreaterThan(WALKWAY / 2 + RADIUS);
         expect(cedula.minX).toBeGreaterThan(space.area.minX + 0.5);
@@ -159,7 +162,6 @@ describe('the complex', () => {
         expect(cedula.minZ).toBeGreaterThan(space.origin.z); // in front of every exhibit
         for (const pad of space.pads ?? []) {
           expect(cedula.maxZ).toBeLessThan(pad.rect.minZ); // further in than the pads
-          if (Math.sign(pad.rect.minX) === side) expect(Math.abs(x - (pad.rect.minX + pad.rect.maxX) / 2)).toBeLessThan(2.5); // ahead of its half
         }
         for (const i of space.rooms!) {
           for (const r of hall(i).solids) expect(overlaps(cedula, { ...r, minZ: r.minZ + space.origin.z, maxZ: r.maxZ + space.origin.z })).toBe(false);

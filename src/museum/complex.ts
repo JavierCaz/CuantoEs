@@ -183,13 +183,15 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
 // ---------- The selector pads ----------
 
 // Ahead of the pads, facing them, so whoever steps on one sees what changed: the title gate over
-// the walkway and, beside it, the cédula that says what the figure is and where it's from. Halls
-// with pads get a cédula on each side, one ahead of each half of the row; the rest, only the right.
+// the walkway and, beside it, the cédula that says what the figure is and where it's from. Each
+// exhibit's cédula stands on the side of its own pad, right ahead of whoever just stepped on it;
+// halls without pads keep it on the right.
 export const GATE_AHEAD = 3.5; // from where you start, toward the exhibit
 export const CEDULA = { x: 3.6, width: 1.7, turn: 0.2 }; // turned a little toward the axis
 
-export function cedulaSides(space: Space): (1 | -1)[] {
-  return space.pads?.length ? [-1, 1] : [1];
+export function cedulaSide(space: Space, exhibit: number): 1 | -1 {
+  const pad = space.pads?.[exhibit];
+  return pad && pad.rect.maxX < 0 ? -1 : 1;
 }
 
 export const PAD_SIZE = 1.4;

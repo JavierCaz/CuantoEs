@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { DEFAULT_BILL } from '../money/denominations';
 import type { Layout, Rect } from '../money/layout';
-import { MoneyRenderer, moneyObstacles } from '../money/MoneyRenderer';
+import { MoneyRenderer, easeOutBounce, moneyObstacles } from '../money/MoneyRenderer';
 import { formatMXN, shortAmount } from '../i18n/format';
 import { GROUPED_ROOMS, GRUPOS, PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, salaOf, type Preset } from '../museum/collection';
-import { CEDULA, GATE_AHEAD, PAD_SIZE, RULER, cedulaSides, padAt, type Complex, type Space } from '../museum/complex';
+import { CEDULA, GATE_AHEAD, PAD_SIZE, RULER, cedulaSide, padAt, type Complex, type Space } from '../museum/complex';
 import type { Point } from '../museum/referenceLayout';
 import { WALL_THICKNESS } from '../museum/rooms';
 import { Collider } from '../controls/collision';
@@ -26,12 +26,15 @@ const T = WALL_THICKNESS;
 const AHEAD = 2; // spaces drawn ahead of the one you're in: you see down the axis through the portals
 const BEHIND = 1;
 const PAD_TOP = 0.03; // the pads stand just proud of the floor, like a slab you step up onto
+// The title gate and the cédula fall into place like the money does, the cédula a beat after the gate.
+const SIGN_DROP = { height: 5, duration: 0.8, stagger: 0.2 };
 
 // One exhibit of a space: what's drawn while it's on show, and what's solid.
 interface Variant {
   layout: Layout;
   group: THREE.Group;
   rects: Rect[];
+  signs: THREE.Object3D[]; // what drops in when it comes on show: the title gate, then the cédula
 }
 
 interface Part {
@@ -42,6 +45,7 @@ interface Part {
   active: number;
   pads: THREE.Mesh[];
   shown: boolean;
+  falling: { objects: THREE.Object3D[]; time: number } | null; // the signs dropping in, if they are
 }
 
 export class Museum {
@@ -113,16 +117,39 @@ export class Museum {
   }
 
   update(dt: number) {
-    for (const part of this.parts) if (part.shown) part.money?.update(dt);
+    for (const part of this.parts) {
+      if (!part.shown) continue;
+      part.money?.update(dt);
+      const falling = part.falling;
+      if (falling) {
+        falling.time += dt;
+        let landed = true;
+        falling.objects.forEach((object, i) => {
+          const t = Math.min(1, Math.max(0, (falling.time - i * SIGN_DROP.stagger) / SIGN_DROP.duration));
+          object.position.y = (1 - easeOutBounce(t)) * SIGN_DROP.height;
+          if (t < 1) landed = false;
+        });
+        if (landed) part.falling = null;
+      }
+    }
   }
 
   dispose() {
     disposeObject(this.group);
   }
 
+  // The exhibit on show drops into place: its money, and its signs from above.
   private drop(part: Part) {
     const variant = part.variants[part.active];
-    if (part.money && variant) part.money.show(variant.layout, !this.options.reducedMotion);
+    if (!variant) return;
+    const animate = !this.options.reducedMotion;
+    part.money?.show(variant.layout, animate);
+    for (const object of part.falling?.objects ?? []) object.position.y = 0; // cut short by another pad: land at once
+    part.falling = null;
+    if (variant.signs.length && animate) {
+      for (const object of variant.signs) object.position.y = SIGN_DROP.height;
+      part.falling = { objects: variant.signs, time: 0 };
+    }
   }
 
   private furnish(builder: Builder, space: Space, next: Space | undefined, rects: Rect[]): Part {
@@ -157,13 +184,14 @@ export class Museum {
         group.add(references.group);
         solid.push(...references.rects);
       }
+      let signs: THREE.Object3D[] = [];
       if (space.rooms) {
         const own = new Signs();
-        hallSigns(own, space, i);
+        signs = hallSigns(own, space, i);
         group.add(own.group);
         solid.push(...own.rects);
       }
-      return { layout: exhibit.layout, group, rects: solid };
+      return { layout: exhibit.layout, group, rects: solid, signs };
     });
 
     const pads = (space.pads ?? []).map((pad) => {
@@ -190,7 +218,7 @@ export class Museum {
     if (next && space.back) overPortal(signs, space, next);
     signs.arrows(space.path);
     rects.push(...signs.rects);
-    return { space, contents, money, variants, active, pads, shown: false };
+    return { space, contents, money, variants, active, pads, shown: false, falling: null };
   }
 }
 
@@ -328,14 +356,14 @@ const furnishings: Record<Space['kind'], Furnish> = {
   },
 };
 
-// A hall's title gate and cédula, for one of its exhibits.
-function hallSigns(signs: Signs, space: Space, exhibit: number) {
+// A hall's title gate and cédula, for one of its exhibits. Returns both, in that order.
+function hallSigns(signs: Signs, space: Space, exhibit: number): THREE.Object3D[] {
   const rooms = space.rooms!;
   const preset = ROOMS[rooms[exhibit]];
   const sala = salaOf(preset);
   const grupo = GRUPOS.find((g) => g.id === space.grupo)!;
   const several = rooms.length > 1;
-  signs.gate({ x: 0, z: space.spawn.z - GATE_AHEAD }, 3.8, [
+  const gate = signs.gate({ x: 0, z: space.spawn.z - GATE_AHEAD }, 3.8, [
     { text: `SALA ${SALAS.indexOf(sala) + 1} · ${sala.nombre.toUpperCase()}`, size: 0.12, color: MUTED, bold: true },
     { text: `${grupo.nombre.toUpperCase()}${several ? ` · ${exhibit + 1} DE ${rooms.length}` : ''}`, size: 0.1, color: MUTED, bold: true },
     { text: preset.titulo, size: 0.22, bold: true },
@@ -344,7 +372,7 @@ function hallSigns(signs: Signs, space: Space, exhibit: number) {
     ...(several ? [{ text: 'Pisa una losa para ver otra cifra', size: 0.1, color: ACCENT }] : []),
   ]);
   // The cédula: what kind of figure it is, what it covers, where it comes from. Beside the gate,
-  // ahead of the pads, so it's in view when you step on one.
+  // ahead of this exhibit's pad, so it's in view when you step on it.
   const consulted = preset.consulta ? `Consultada el ${new Date(preset.consulta + 'T12:00').toLocaleDateString('es-MX', { dateStyle: 'long' })}` : null;
   const lines: Line[] = [
     { text: TIPOS[preset.tipo].toUpperCase(), size: 0.075, color: ACCENT, bold: true, wrap: true },
@@ -356,9 +384,9 @@ function hallSigns(signs: Signs, space: Space, exhibit: number) {
     { text: `Fuente: ${preset.fuente}`, size: 0.05, color: MUTED, wrap: true },
     ...(consulted ? [{ text: consulted, size: 0.05, color: MUTED }] : []),
   ];
-  for (const side of cedulaSides(space)) {
-    signs.post({ x: side * CEDULA.x, z: space.spawn.z - GATE_AHEAD }, { x: -side * CEDULA.turn, z: 1 }, CEDULA.width, lines);
-  }
+  const side = cedulaSide(space, exhibit);
+  const cedula = signs.post({ x: side * CEDULA.x, z: space.spawn.z - GATE_AHEAD }, { x: -side * CEDULA.turn, z: 1 }, CEDULA.width, lines);
+  return [gate, cedula];
 }
 
 // Over every portal, on the side you walk toward: where it leads.

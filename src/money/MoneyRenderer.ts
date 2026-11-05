@@ -192,7 +192,7 @@ function createMaterials(bill: Denomination, anisotropy: number): Record<UnitKin
 }
 
 // Same idea as a CSS easing curve: maps linear time 0→1 to a bouncy landing.
-function easeOutBounce(t: number): number {
+export function easeOutBounce(t: number): number {
   const n = 7.5625;
   const d = 2.75;
   if (t < 1 / d) return n * t * t;

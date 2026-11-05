@@ -39,8 +39,8 @@ export class Signs {
     disposeObject(this.group);
   }
 
-  // A sign on a pole at `at`, its face turned toward `facing`.
-  post(at: Point, facing: Point, width: number, lines: Line[], options?: PlateOptions) {
+  // A sign on a pole at `at`, its face turned toward `facing`. Returns it, pole and all.
+  post(at: Point, facing: Point, width: number, lines: Line[], options?: PlateOptions): THREE.Group {
     const { object, height } = plate(lines, width, options);
     object.position.y = SIGN_BOTTOM + height / 2;
     const top = SIGN_BOTTOM + height * 0.5;
@@ -58,13 +58,17 @@ export class Signs {
     const halfX = Math.abs(facing.z) * (width / 2) + Math.abs(facing.x) * 0.15 + 0.05;
     const halfZ = Math.abs(facing.x) * (width / 2) + Math.abs(facing.z) * 0.15 + 0.05;
     this.rects.push({ minX: at.x - halfX, maxX: at.x + halfX, minZ: at.z - halfZ, maxZ: at.z + halfZ });
+    return post;
   }
 
   // A plate held up by a pole at each end, facing +Z: an entrance gate you walk under.
-  gate(at: Point, width: number, lines: Line[]) {
+  // Returns it, plate and poles together.
+  gate(at: Point, width: number, lines: Line[]): THREE.Group {
+    const gate = new THREE.Group();
+    this.group.add(gate);
     const { object, height } = plate(lines, width);
     object.position.set(at.x, GATE_CLEARANCE + height / 2, at.z);
-    this.group.add(object);
+    gate.add(object);
     const top = GATE_CLEARANCE + height;
     const material = new THREE.MeshStandardMaterial({ color: CARBON });
     for (const side of [-1, 1]) {
@@ -72,9 +76,10 @@ export class Signs {
       const pole = new THREE.Mesh(new THREE.BoxGeometry(0.1, top, 0.1), material);
       pole.position.set(x, top / 2, at.z);
       pole.castShadow = true;
-      this.group.add(pole);
+      gate.add(pole);
       this.rects.push({ minX: x - 0.15, maxX: x + 0.15, minZ: at.z - 0.15, maxZ: at.z + 0.15 });
     }
+    return gate;
   }
 
   // A plate flat on a wall, its bottom edge at `bottom`, facing `facing` (out of the wall).
