@@ -3,7 +3,7 @@ import { DEFAULT_BILL } from '../money/denominations';
 import type { Layout, Rect } from '../money/layout';
 import { MoneyRenderer, moneyObstacles } from '../money/MoneyRenderer';
 import { formatMXN, shortAmount } from '../i18n/format';
-import { GRUPOS, PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, salaOf, type Preset } from '../museum/collection';
+import { GROUPED_ROOMS, GRUPOS, PRESETS, ROOMS, SALAS, TIPOS, comparisonsFor, salaOf, type Preset } from '../museum/collection';
 import { CEDULA, GATE_AHEAD, PAD_SIZE, RULER, cedulaSides, padAt, type Complex, type Space } from '../museum/complex';
 import type { Point } from '../museum/referenceLayout';
 import { WALL_THICKNESS } from '../museum/rooms';
@@ -210,9 +210,11 @@ function gardens(space: Space): Rect[] {
         { minX: 4.5, maxX: maxX - 2, minZ: minZ + 3, maxZ: maxZ - 10 },
       ];
     case 'patio':
-      return [{ minX: 3.5, maxX: maxX - 1.5, minZ: minZ + 3, maxZ: maxZ - 3 }];
+      // Low planting under the sala's directory, kept off the back wall so it doesn't hide it.
+      return [{ minX: 3.5, maxX: maxX - 1, minZ: minZ + 3.5, maxZ: maxZ - 2 }];
     case 'reflexion':
-      return [{ minX: minX + 1.5, maxX: -4, minZ: maxZ - 11, maxZ: maxZ - 3 }];
+      // Toward the entrance, clear of the sources on the same wall.
+      return [{ minX: minX + 1.5, maxX: -4, minZ: maxZ - 9, maxZ: maxZ - 3 }];
     default:
       return [];
   }
@@ -236,6 +238,13 @@ const furnishings: Record<Space['kind'], Furnish> = {
       },
       { text: 'W A S D o joystick · doble W para correr · V vista aérea · M música', size: 0.065, color: MUTED, wrap: true },
     ]);
+    // The route ahead, on the left wall by the entrance: every stop, in order.
+    signs.onWall({ x: space.area.minX + T / 2, z: space.area.maxZ - 4 }, 1.2, towardX, 4.4, [
+      { text: 'EL RECORRIDO', size: 0.12, color: ACCENT, bold: true },
+      { text: 'Vestíbulo · cómo leer el museo', size: 0.13 },
+      ...SALAS.map((sala, i): Line => ({ text: `Sala ${i + 1} · ${sala.nombre} — ${sala.escala}`, size: 0.13, bold: true })),
+      { text: 'Patio de reflexión · fuentes y salida', size: 0.13 },
+    ], { align: 'left', pad: 0.3 });
   },
 
   vestibulo(signs, _, space) {
@@ -262,14 +271,23 @@ const furnishings: Record<Space['kind'], Furnish> = {
     const count = ROOMS.filter((r) => r.sala === sala.id).length;
     // A freestanding concrete stele with the sala's name, beside the axis.
     const z = cz(space);
-    builder.box('concreto', -9, -3.5, 0, 4.2, z - 0.3, z + 0.3, true);
-    signs.onWall({ x: -6.25, z: z + 0.3 }, 1.2, towardZ, 4.6, [
+    builder.box('concreto', -7.2, -2.8, 0, 4.2, z - 0.3, z + 0.3, true);
+    signs.onWall({ x: -5, z: z + 0.3 }, 1.2, towardZ, 4, [
       { text: `SALA ${n} DE ${SALAS.length}`, size: 0.14, color: ACCENT, bold: true },
       { text: sala.nombre, size: 0.55, bold: true },
       { text: sala.escala, size: 0.18, color: MUTED },
       { text: sala.descripcion, size: 0.13, wrap: true },
       { text: `${count} ${count === 1 ? 'exposición' : 'exposiciones'}`, size: 0.11, color: MUTED },
     ]);
+    // Every figure in it, hall by hall in the order you'll walk them, on the back wall beside the way in.
+    const halls = GROUPED_ROOMS.filter((g) => g.grupo.sala === sala.id);
+    signs.onWall({ x: 5, z: space.area.minZ + T / 2 }, 1.2, towardZ, 4.4, [
+      { text: 'EN ESTA SALA', size: 0.12, color: ACCENT, bold: true },
+      ...halls.flatMap(({ grupo, rooms }): Line[] => [
+        { text: grupo.nombre, size: 0.14, bold: true },
+        ...rooms.map((i): Line => ({ text: `${ROOMS[i].titulo} · ${shortAmount(ROOMS[i].monto)}`, size: 0.1, color: MUTED })),
+      ]),
+    ], { align: 'left', pad: 0.3 });
   },
 
   // A hall's signs belong to the exhibit on show: see hallSigns.
@@ -284,9 +302,18 @@ const furnishings: Record<Space['kind'], Furnish> = {
     ]);
     // Every source in the museum, on the long wall, to check and come back to.
     const lines: Line[] = PRESETS.map((p) => ({ text: `${p.titulo} — ${p.fuente}${p.año ? ` (${p.año})` : ''}`, size: 0.11 }));
-    signs.onWall({ x: space.area.minX + T / 2, z: space.area.minZ + 8 }, 1, towardX, 11, [
+    signs.onWall({ x: space.area.minX + T / 2, z: space.area.minZ + 7 }, 1, towardX, 11, [
       { text: 'FUENTES', size: 0.16, color: ACCENT, bold: true },
       ...lines,
+    ], { align: 'left', pad: 0.3 });
+    // Across the water, the whole climb, sala by sala, from the smallest figure to the largest.
+    signs.onWall({ x: space.area.maxX - T / 2, z: space.area.minZ + 10 }, 1.2, towardMinusX, 5, [
+      { text: 'LO QUE RECORRISTE', size: 0.12, color: ACCENT, bold: true },
+      ...SALAS.flatMap((sala): Line[] => [
+        { text: sala.nombre, size: 0.17, bold: true },
+        { text: amountsLine(ROOMS.filter((r) => r.sala === sala.id).map((r) => r.monto)), size: 0.12, color: MUTED },
+      ]),
+      { text: 'Las mismas cifras de las noticias, ahora con tamaño.', size: 0.1, wrap: true },
     ], { align: 'left', pad: 0.3 });
   },
 
@@ -343,11 +370,12 @@ function overPortal(signs: Signs, space: Space, next: Space) {
     { text: 'SIGUIENTE', size: 0.12, color: ACCENT, bold: true },
     { text: next.title, size: 0.2, bold: true },
   ];
-  if (amounts.length === 1) lines.push({ text: shortAmount(amounts[0]), size: 0.15, color: MUTED });
-  if (amounts.length > 1) {
-    lines.push(
-      { text: `${amounts.length} cifras, de ${shortAmount(Math.min(...amounts))} a ${shortAmount(Math.max(...amounts))}`, size: 0.13, color: MUTED },
-    );
-  }
+  if (amounts.length) lines.push({ text: amountsLine(amounts), size: amounts.length === 1 ? 0.15 : 0.13, color: MUTED });
   signs.onWall({ x: 0, z: space.area.minZ + T / 2 }, space.back!.height + 0.25, towardZ, 4.4, lines);
+}
+
+// One figure, or how many and from which to which.
+function amountsLine(amounts: number[]): string {
+  if (amounts.length === 1) return shortAmount(amounts[0]);
+  return `${amounts.length} cifras, de ${shortAmount(Math.min(...amounts))} a ${shortAmount(Math.max(...amounts))}`;
 }

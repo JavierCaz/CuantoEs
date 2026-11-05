@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { ARENA, CARBON, TERRACOTA } from './palette';
+import { ARENA, TERRACOTA } from './palette';
+import { reflective } from './references/kit';
 
 // The museum's materials: concreto aparente, cantera, piedra volcánica, piedra pulida, madera.
 // Each texture is painted once with Canvas 2D and covers `tile` meters of surface; the
@@ -23,6 +24,7 @@ interface Spec {
   color?: string;
   roughness: number;
   metalness?: number;
+  reflects?: number; // how strongly it mirrors the sky (see World.makeEnvironment), like the scale references' glass
 }
 
 // Speckles of lighter and darker paint: what keeps a flat color from looking like plastic.
@@ -172,8 +174,9 @@ const SPECS: Record<MaterialName, Spec> = {
       }
     },
   },
-  // Still water: dark and glossy, so the sky and the walls show in it.
-  agua: { tile: [1, 1], px: [1, 1], color: CARBON, roughness: 0.05, metalness: 0.7 },
+  // Still water: a deep green you look down into, turning to a mirror of the sky as you look across it.
+  // Not metal: water takes its color from what's below, and reflects only at a low angle (Fresnel).
+  agua: { tile: [1, 1], px: [1, 1], color: '#2C4F47', roughness: 0.06, reflects: 0.55 },
 };
 
 const cache = new Map<MaterialName, THREE.MeshStandardMaterial>();
@@ -195,6 +198,7 @@ export function material(name: MaterialName, anisotropy = 8): THREE.MeshStandard
   } else {
     m.color.set(spec.color!);
   }
+  if (spec.reflects) reflective(m).envMapIntensity = spec.reflects;
   m.userData.tile = spec.tile;
   m.userData.shared = true;
   cache.set(name, m);

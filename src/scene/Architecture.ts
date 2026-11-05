@@ -95,12 +95,12 @@ export function buildSpace(b: Builder, space: Space, next: Space | undefined) {
   }
   if (kind === 'patio') {
     // Benches before the sala's stele (see Museum), the dry garden across the axis.
-    bench(b, -5.5, (minZ + maxZ) / 2 + 3.5, 'x');
-    bench(b, -5.5, (minZ + maxZ) / 2 - 3.5, 'x');
+    bench(b, -5.5, (minZ + maxZ) / 2 + 2.5, 'x');
+    bench(b, -5.5, (minZ + maxZ) / 2 - 2.5, 'x');
   }
   if (kind === 'reflexion') {
     // An espejo de agua off the axis, a cantera curb around it, benches facing it.
-    const pool = { minX: 3.5, maxX: 10, minZ: minZ + 5, maxZ: maxZ - 7 };
+    const pool = { minX: 3, maxX: maxX - 2, minZ: minZ + 5, maxZ: maxZ - 7 };
     b.box('cantera', pool.minX - 0.3, pool.maxX + 0.3, 0, 0.35, pool.minZ - 0.3, pool.maxZ + 0.3, true);
     b.box('agua', pool.minX, pool.maxX, 0.35, 0.37, pool.minZ, pool.maxZ);
     for (const z of [pool.minZ + 3, pool.maxZ - 3]) bench(b, 2, z, 'z');

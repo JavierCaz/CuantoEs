@@ -89,13 +89,13 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
   });
 
   // High walls all around the plaza; the inscription goes over the portal.
-  local({ ...empty('plaza', 'plaza', 'Plaza de acceso', 26, 26, 14, 'abierto'), spawn: { x: 0, z: -5 } });
+  local({ ...empty('plaza', 'plaza', 'Plaza de acceso', 20, 18, 14, 'abierto'), spawn: { x: 0, z: -5 } });
   // Long enough for the ruler along its left wall; you walk in past the first step.
   local({ ...empty('vestibulo', 'vestibulo', 'Vestíbulo', 14, 24, 9, 'oculo'), spawn: { x: 0, z: -2.5 }, exhibits: [ruler()] });
 
   SALAS.forEach((sala, n) => {
-    // Each sala opens with a patio: a breath of open air before a new scale.
-    local({ ...empty('patio', `patio-${sala.id}`, `Sala ${n + 1} · ${sala.nombre}`, 22, 20, 8, 'abierto'), sala: sala.id });
+    // Each sala opens with a small patio: a breath of open air, and what's ahead, before a new scale.
+    local({ ...empty('patio', `patio-${sala.id}`, `Sala ${n + 1} · ${sala.nombre}`, 16, 12, 8, 'abierto'), sala: sala.id });
     for (const { grupo, rooms } of GROUPED_ROOMS) {
       if (grupo.sala !== sala.id) continue;
       const members = rooms.map((i) => ({ amount: ROOMS[i].monto, referencias: ROOMS[i].referencias }));
@@ -103,7 +103,7 @@ export function planComplex({ footprint, temporal }: ComplexInput): Complex {
     }
   });
 
-  local({ ...empty('reflexion', 'reflexion', 'Patio de reflexión', 26, 26, 9, 'abierto') });
+  local({ ...empty('reflexion', 'reflexion', 'Patio de reflexión', 20, 22, 9, 'abierto') });
   if (temporal) {
     local(hall('temporal', 'Sala temporal', [{ amount: temporal.amount, referencias: temporal.references }], {}, 'temporal'));
   }
