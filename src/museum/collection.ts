@@ -79,7 +79,7 @@ export const GRUPOS = [
     presets: ['salario-minimo-anual', 'canasta-alimentaria', 'ingreso-hogar-promedio', 'vivienda-promedio'],
   },
   { id: 'transporte', sala: 'tu-ciudad', nombre: 'Transporte', presets: ['km-tren-interurbano', 'tren-interurbano'] },
-  { id: 'presupuestos-ciudad', sala: 'tu-ciudad', nombre: 'Presupuestos de ciudades', presets: ['monterrey-2026', 'cdmx-2026'] },
+  { id: 'presupuestos-ciudad', sala: 'tu-ciudad', nombre: 'Presupuestos de ciudades', presets: ['monterrey-2026', 'guadalajara-2026', 'cdmx-2026'] },
   { id: 'gobierno', sala: 'tu-pais', nombre: 'Gobierno y elecciones', presets: ['ine-2026', 'dia-de-gobierno'] },
   { id: 'megaproyectos', sala: 'tu-pais', nombre: 'Megaproyectos', presets: ['aifa', 'refineria-olmeca', 'tren-maya'] },
   {

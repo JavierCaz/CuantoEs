@@ -120,6 +120,26 @@
     ]
   },
   {
+    "id": "guadalajara-2026",
+    "sala": "tu-ciudad",
+    "titulo": "Presupuesto de Guadalajara 2026",
+    "monto": 13016671527.89,
+    "año": 2026,
+    "tipo": "aprobado",
+    "pregunta": "¿Cuánto cuesta un año de servicios municipales para casi 1.4 millones de personas?",
+    "descripcion": "Todo lo que el municipio de Guadalajara planeó gastar en 2026: unos 4.8 mil millones en servicios públicos, 2.4 mil millones en seguridad y 1.2 mil millones en obra pública.",
+    "alcance": "Presupuesto aprobado por el Ayuntamiento para 2026, igual a sus ingresos estimados; 3.8% más que en 2025. Solo el municipio de Guadalajara, no toda la zona metropolitana.",
+    "fuente": "Ayuntamiento de Guadalajara, Presupuesto Ciudadano 2026, vía El Congresista",
+    "fuente_url": "https://elcongresista.mx/politica/nacional/guadalajara-presupuesto-2026-13-mil-millones",
+    "consulta": "2026-11-05",
+    "compara": ["monterrey-2026", "cdmx-2026"],
+    "referencias": [
+      "persona",
+      "auto",
+      "vagon"
+    ]
+  },
+  {
     "id": "tren-interurbano",
     "sala": "tu-ciudad",
     "titulo": "Tren Interurbano México–Toluca",
